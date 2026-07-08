@@ -3,30 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roblox Portal</title>
+    <title>Roblox Clone - SPA</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f3f3f3; color: #333; }
-        #topbar { background: #232527; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%; top: 0; z-index: 100; box-sizing: border-box; height: 50px; }
-        #topbar .logo { font-size: 24px; font-weight: bold; color: white; text-decoration: none; }
-        #topbar .nav-right { display: flex; align-items: center; gap: 15px; }
-        .robux-display { color: #00b06f; font-weight: bold; font-size: 18px; }
-        #sidebar { width: 220px; background: #232527; height: calc(100vh - 50px); position: fixed; top: 50px; left: 0; padding-top: 10px; overflow-y: auto; }
-        .nav-item { padding: 15px 20px; color: #b8b8b8; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 16px; border-left: 4px solid transparent; }
-        .nav-item:hover, .nav-item.active { background: #393b3d; color: white; border-left: 4px solid #00a2ff; }
-        #content { margin-left: 220px; margin-top: 50px; padding: 20px; min-height: calc(100vh - 50px); }
-        .page { display: none; }
-        .page.active { display: block; }
-        .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        /* --- GLOBAL & RESET --- */
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f3f3f3; }
+        .view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; }
+        .view.active { display: flex; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-primary { background: #00a2ff; color: white; }
         .btn-green { background: #00b06f; color: white; }
         .btn-red { background: #e34c4c; color: white; }
         .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-        input, select { padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 14px; }
+        input, select { padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
+
+        /* --- AUTH MODAL --- */
+        #auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .modal-box { background: white; padding: 40px; border-radius: 12px; width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+
+        /* --- VIEW: MAIN WEBSITE --- */
+        #view-main { flex-direction: column; background: #f3f3f3; }
+        #main-topbar { background: #232527; color: white; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; height: 50px; flex-shrink: 0; z-index: 100; }
+        #main-topbar .logo { font-size: 24px; font-weight: bold; color: white; text-decoration: none; cursor: pointer; }
+        .robux-display { color: #00b06f; font-weight: bold; font-size: 18px; }
+        #main-body-container { display: flex; flex: 1; overflow: hidden; }
+        #main-sidebar { width: 220px; background: #232527; padding-top: 10px; overflow-y: auto; flex-shrink: 0; }
+        .nav-item { padding: 15px 20px; color: #b8b8b8; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 16px; border-left: 4px solid transparent; }
+        .nav-item:hover, .nav-item.active { background: #393b3d; color: white; border-left: 4px solid #00a2ff; }
+        #main-content { flex: 1; overflow-y: auto; padding: 20px; }
+        .main-page { display: none; }
+        .main-page.active { display: block; }
+        .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         #hammer-btn { position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: #f5cd35; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 35px; z-index: 1000; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s; }
         #hammer-btn:hover { transform: scale(1.1) rotate(15deg); }
-        #auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 2000; }
-        .modal-box { background: white; padding: 40px; border-radius: 12px; width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
         .game-card { background: white; border-radius: 8px; overflow: hidden; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .game-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
@@ -36,10 +44,35 @@
         .badge-premium { background: #00b06f; }
         .badge-verified { background: #00a2ff; }
         .badge-admin { background: #e34c4c; }
+
+        /* --- VIEW: PLAYER --- */
+        #view-player { background: #000; flex-direction: column; }
+        #player-canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+        #player-hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        #player-chat { position: absolute; top: 10px; left: 10px; width: 300px; height: 200px; background: rgba(0,0,0,0.6); color: white; padding: 10px; border-radius: 5px; pointer-events: auto; display: flex; flex-direction: column; }
+        #player-chat-msgs { flex: 1; overflow-y: auto; font-size: 14px; }
+        #player-chat-input { width: 100%; background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px; margin-top: 5px; pointer-events: auto; }
+        #player-leave-btn { position: absolute; top: 10px; right: 10px; pointer-events: auto; }
+        #player-info { position: absolute; bottom: 10px; left: 10px; color: white; background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 5px; font-size: 12px; pointer-events: none; }
+
+        /* --- VIEW: STUDIO --- */
+        #view-studio { flex-direction: column; background: #1e1e1e; color: white; }
+        #studio-toolbar { background: #2d2d2d; padding: 10px; display: flex; gap: 10px; border-bottom: 1px solid #444; flex-shrink: 0; }
+        #studio-main-container { display: flex; flex: 1; overflow: hidden; }
+        #studio-toolbox { width: 200px; background: #252526; padding: 10px; border-right: 1px solid #444; overflow-y: auto; flex-shrink: 0; }
+        #studio-viewport-container { flex: 1; position: relative; background: #333; }
+        #studio-right-panel { width: 300px; background: #252526; display: flex; flex-direction: column; border-left: 1px solid #444; flex-shrink: 0; }
+        .tool-item { padding: 10px; background: #3e3e42; margin-bottom: 5px; cursor: pointer; border-radius: 4px; text-align: center; }
+        .tool-item:hover { background: #505055; }
+        .exp-item { padding: 5px; cursor: pointer; font-size: 14px; }
+        .exp-item:hover, .exp-item.sel { background: #094771; }
+        .panel { flex: 1; padding: 10px; overflow-y: auto; border-bottom: 1px solid #444; }
+        h3 { margin: 10px 0; font-size: 16px; border-bottom: 1px solid #444; padding-bottom: 5px;}
     </style>
 </head>
 <body>
 
+    <!-- AUTH MODAL -->
     <div id="auth-modal">
         <div class="modal-box">
             <h2 style="margin-top:0;">Welcome to Roblox</h2>
@@ -51,182 +84,218 @@
         </div>
     </div>
 
-    <div id="topbar">
-        <a href="#" class="logo" onclick="showPage('home')">ROBLOX</a>
-        <div class="nav-right">
-            <span class="robux-display" id="ui-robux">0 R$</span>
-            <span id="ui-user" style="font-weight:bold;"></span>
-            <span id="ui-badges"></span>
-            <button class="btn btn-red" style="padding: 5px 10px; font-size: 12px;" onclick="logout()">Logout</button>
+    <!-- VIEW: MAIN WEBSITE -->
+    <div id="view-main" class="view active">
+        <div id="main-topbar">
+            <span class="logo" onclick="showMainPage('home')">ROBLOX</span>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <span class="robux-display" id="ui-robux">0 R$</span>
+                <span id="ui-user" style="font-weight:bold;"></span>
+                <span id="ui-badges"></span>
+                <button class="btn btn-red" style="padding: 5px 10px; font-size: 12px;" onclick="logout()">Logout</button>
+            </div>
+        </div>
+        <div id="main-body-container">
+            <div id="main-sidebar">
+                <div class="nav-item active" onclick="showMainPage('home')">🏠 Home</div>
+                <div class="nav-item" onclick="showMainPage('games')">🎮 Games</div>
+                <div class="nav-item" onclick="showMainPage('catalog')">🛒 Catalog</div>
+                <div class="nav-item" onclick="showMainPage('avatar')">👤 Avatar</div>
+                <div class="nav-item" id="nav-admin" style="display:none;" onclick="showMainPage('admin')">🛡️ Admin Panel</div>
+            </div>
+            <div id="main-content">
+                <div id="page-home" class="main-page active">
+                    <h2>Featured Games</h2>
+                    <div class="grid" id="grid-home"></div>
+                </div>
+                <div id="page-games" class="main-page">
+                    <h2>All Games</h2>
+                    <button class="btn btn-green" onclick="createGame()">+ Create New Game</button>
+                    <div class="grid" id="grid-games" style="margin-top:20px;"></div>
+                </div>
+                <div id="page-catalog" class="main-page">
+                    <h2>Catalog</h2>
+                    <div class="grid" id="grid-catalog"></div>
+                </div>
+                <div id="page-avatar" class="main-page">
+                    <h2>Avatar Editor</h2>
+                    <div class="card">
+                        <h3>Customize Colors</h3>
+                        <label>Torso Color:</label>
+                        <input type="color" id="col-torso" value="#0054E3" onchange="updateAvatar('torsoColor', this.value)">
+                        <label>Head Color:</label>
+                        <input type="color" id="col-head" value="#FFE0BD" onchange="updateAvatar('headColor', this.value)">
+                    </div>
+                </div>
+                <div id="page-admin" class="main-page">
+                    <h2>Admin Panel</h2>
+                    <div class="card">
+                        <h3>💰 Distribute Robux</h3>
+                        <input type="text" id="adm-target" placeholder="Target Username">
+                        <input type="number" id="adm-amount" placeholder="Amount">
+                        <button class="btn btn-green" onclick="adminGiveRobux()">Give Robux</button>
+                    </div>
+                    <div class="card">
+                        <h3>🏅 Manage Badges</h3>
+                        <input type="text" id="badge-target" placeholder="Target Username">
+                        <button class="btn btn-primary" onclick="adminToggleBadge('isPremium')">Toggle Premium</button>
+                        <button class="btn btn-primary" onclick="adminToggleBadge('isVerified')">Toggle Verified</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button id="hammer-btn" onclick="openStudio()" title="Open Studio">🔨</button>
+    </div>
+
+    <!-- VIEW: PLAYER -->
+    <div id="view-player" class="view">
+        <div id="player-canvas-container"></div>
+        <div id="player-hud">
+            <div id="player-chat">
+                <div id="player-chat-msgs"></div>
+                <input type="text" id="player-chat-input" placeholder="Press Enter to chat..." onkeydown="handlePlayerChat(event)">
+            </div>
+            <button id="player-leave-btn" class="btn btn-red" onclick="leaveGame()">Leave Game</button>
+            <div id="player-info">Loading...</div>
         </div>
     </div>
 
-    <div id="sidebar">
-        <div class="nav-item active" onclick="showPage('home')">🏠 Home</div>
-        <div class="nav-item" onclick="showPage('games')">🎮 Games</div>
-        <div class="nav-item" onclick="showPage('catalog')">🛒 Catalog</div>
-        <div class="nav-item" onclick="showPage('avatar')">👤 Avatar</div>
-        <div class="nav-item" id="nav-admin" style="display:none;" onclick="showPage('admin')">🛡️ Admin Panel</div>
-    </div>
-
-    <div id="content">
-        <div id="page-home" class="page active">
-            <h2>Featured Games</h2>
-            <div class="grid" id="grid-home"></div>
+    <!-- VIEW: STUDIO -->
+    <div id="view-studio" class="view">
+        <div id="studio-toolbar">
+            <button class="btn btn-red" onclick="switchView('main')">Exit Studio</button>
+            <button class="btn btn-primary" onclick="saveProject()">💾 Save</button>
+            <button class="btn btn-green" onclick="publishGame()">🚀 Publish</button>
+            <span style="margin-left:auto; align-self:center; color:#aaa;" id="studio-status">Ready</span>
         </div>
-        <div id="page-games" class="page">
-            <h2>All Games</h2>
-            <button class="btn btn-green" onclick="createGame()">+ Create New Game</button>
-            <div class="grid" id="grid-games" style="margin-top:20px;"></div>
-        </div>
-        <div id="page-catalog" class="page">
-            <h2>Catalog</h2>
-            <div class="grid" id="grid-catalog"></div>
-        </div>
-        <div id="page-avatar" class="page">
-            <h2>Avatar Editor</h2>
-            <div class="card">
-                <h3>Customize Colors</h3>
-                <label>Torso Color:</label>
-                <input type="color" id="col-torso" value="#0054E3" onchange="updateAvatar('torsoColor', this.value)">
-                <label>Head Color:</label>
-                <input type="color" id="col-head" value="#FFE0BD" onchange="updateAvatar('headColor', this.value)">
+        <div id="studio-main-container">
+            <div id="studio-toolbox">
+                <h3>Toolbox</h3>
+                <div class="tool-item" onclick="addStudioPart('block')">📦 Block</div>
+                <div class="tool-item" onclick="addStudioPart('sphere')">⚪ Sphere</div>
+                <div class="tool-item" onclick="addStudioPart('cylinder')">🥫 Cylinder</div>
+                <div class="tool-item" onclick="addStudioPart('spawn')">🚩 Spawn</div>
             </div>
-        </div>
-        <div id="page-admin" class="page">
-            <h2>Admin Panel</h2>
-            <div class="card">
-                <h3>💰 Distribute Robux</h3>
-                <p>Give Robux to a user (Admin Only)</p>
-                <input type="text" id="adm-target" placeholder="Target Username">
-                <input type="number" id="adm-amount" placeholder="Amount (e.g. 1000)">
-                <button class="btn btn-green" onclick="adminGiveRobux()">Give Robux</button>
-            </div>
-            <div class="card">
-                <h3>🏅 Manage Badges</h3>
-                <p>Toggle Premium or Verified status</p>
-                <input type="text" id="badge-target" placeholder="Target Username">
-                <button class="btn btn-primary" onclick="adminToggleBadge('isPremium')">Toggle Premium</button>
-                <button class="btn btn-primary" onclick="adminToggleBadge('isVerified')">Toggle Verified</button>
+            <div id="studio-viewport-container"></div>
+            <div id="studio-right-panel">
+                <div class="panel">
+                    <h3>Explorer</h3>
+                    <div id="studio-explorer-list"></div>
+                </div>
+                <div class="panel" style="border-bottom:none;">
+                    <h3>Properties</h3>
+                    <div id="studio-props">Select an object</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <button id="hammer-btn" onclick="openStudio()" title="Open Studio">🔨</button>
-
+    <!-- SCRIPTS -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
     <script>
-        const firebaseConfig = { databaseURL: "https://roblox-bd310-default-rtdb.firebaseio.com/" };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        // ==========================================
+        // 1. CORE & FIREBASE INITIALIZATION
+        // ==========================================
+        const appA = firebase.initializeApp({ databaseURL: "https://roblox-bd310-default-rtdb.firebaseio.com/" }, "A");
+        const appB = firebase.initializeApp({ databaseURL: "https://roblox-everything-else-default-rtdb.firebaseio.com/" }, "B");
+        const dbA = appA.database();
+        const dbB = appB.database();
 
+        let currentView = 'main';
         let currentUser = null;
         let currentUserId = null;
-        let verificationTimer = null;
 
+        // ==========================================
+        // 2. VIEW ROUTER (SPA LOGIC)
+        // ==========================================
+        function switchView(viewName, params = {}) {
+            if (currentView === 'player') cleanupPlayer();
+            if (currentView === 'studio') cleanupStudio();
+
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            currentView = viewName;
+
+            if (viewName === 'player') initPlayer(params.placeId, params.instanceId);
+            else if (viewName === 'studio') initStudio(params.projectId);
+        }
+
+        // ==========================================
+        // 3. MAIN WEBSITE MODULE
+        // ==========================================
         window.handleAuth = async function() {
             const username = document.getElementById('auth-user').value.trim();
             const password = document.getElementById('auth-pass').value;
             const err = document.getElementById('auth-err');
             err.innerText = "";
-
             if(!username || !password) { err.innerText = "Fill all fields"; return; }
 
             try {
-                const snap = await db.ref('users').orderByChild('displayName').equalTo(username).once('value');
-                
+                const snap = await dbA.ref('users').orderByChild('displayName').equalTo(username).once('value');
                 if (snap.exists()) {
                     let foundId = null; let data = null;
-                    snap.forEach(c => {
-                        if(c.val().password === password) { foundId = c.key; data = c.val(); }
-                    });
-                    if(foundId) {
-                        currentUserId = foundId; currentUser = data;
-                        await enterApp();
-                    } else { err.innerText = "Incorrect password"; }
+                    snap.forEach(c => { if(c.val().password === password) { foundId = c.key; data = c.val(); } });
+                    if(foundId) { currentUserId = foundId; currentUser = data; await enterMainApp(); }
+                    else { err.innerText = "Incorrect password"; }
                 } else {
                     currentUserId = "user_" + Date.now();
-                    const newUser = {
-                        displayName: username, password: password, role: "user",
-                        robuxBalance: 0, totalPlaytime: 0, isPremium: false, isVerified: false,
-                        avatar: { headColor: "#FFE0BD", torsoColor: "#0054E3" },
-                        createdAt: Date.now()
-                    };
-                    await db.ref(`users/${currentUserId}`).set(newUser);
+                    const newUser = { displayName: username, password: password, role: "user", robuxBalance: 0, totalPlaytime: 0, isPremium: false, isVerified: false, avatar: { headColor: "#FFE0BD", torsoColor: "#0054E3" }, createdAt: Date.now() };
+                    await dbA.ref(`users/${currentUserId}`).set(newUser);
                     currentUser = newUser;
-                    await enterApp();
+                    await enterMainApp();
                 }
             } catch (e) { err.innerText = "Error: " + e.message; }
         };
 
-        async function enterApp() {
+        async function enterMainApp() {
             document.getElementById('auth-modal').style.display = 'none';
-            
             if (currentUser.displayName === "testing44") {
-                await db.ref(`users/${currentUserId}`).update({ role: "admin", isPremium: true, isVerified: true, robuxBalance: 100000 });
+                await dbA.ref(`users/${currentUserId}`).update({ role: "admin", isPremium: true, isVerified: true, robuxBalance: 100000 });
                 currentUser.role = "admin"; currentUser.isPremium = true; currentUser.isVerified = true; currentUser.robuxBalance = 100000;
             }
-
-            updateUI();
-            loadGames();
-            loadCatalog();
+            updateMainUI();
+            loadMainGames();
+            loadMainCatalog();
             startVerificationLoop();
         }
 
-        function updateUI() {
+        function updateMainUI() {
             document.getElementById('ui-user').innerText = currentUser.displayName;
             document.getElementById('ui-robux').innerText = currentUser.robuxBalance + " R$";
-            
             let badges = "";
             if(currentUser.role === 'admin') badges += "<span class='badge badge-admin'>ADMIN</span>";
             if(currentUser.isPremium) badges += "<span class='badge badge-premium'>PREMIUM</span>";
             if(currentUser.isVerified) badges += "<span class='badge badge-verified'>VERIFIED</span>";
             document.getElementById('ui-badges').innerHTML = badges;
-
             if(currentUser.role === 'admin') document.getElementById('nav-admin').style.display = 'flex';
         }
 
         window.logout = function() { location.reload(); };
-
-        window.showPage = function(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        window.showMainPage = function(id) {
+            document.querySelectorAll('.main-page').forEach(p => p.classList.remove('active'));
             document.getElementById(`page-${id}`).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if(event && event.currentTarget) event.currentTarget.classList.add('active');
         };
 
-        // ==========================================
-        // NAVIGATION (FIXED FOR GOOGLE SITES IFRAMES)
-        // ==========================================
-        window.openStudio = function() {
-            const url = `https://sites.google.com/view/rblxstudio/home?userId=${currentUserId}&username=${encodeURIComponent(currentUser.displayName)}`;
-            // window.top breaks out of the Google Sites iframe to prevent 403 errors
-            window.top.location.href = url; 
-        };
-
-        window.playGame = function(placeId) {
-            const instId = "inst_" + Math.random().toString(36).substr(2, 9);
-            const url = `https://sites.google.com/view/ingamerblx/home?placeId=${placeId}&instanceId=${instId}&userId=${currentUserId}`;
-            // window.top breaks out of the Google Sites iframe to prevent 403 errors
-            window.top.location.href = url; 
-        };
-        // ==========================================
+        window.openStudio = function() { switchView('studio', { projectId: "proj_" + Date.now() }); };
+        window.playGame = function(placeId) { switchView('player', { placeId, instanceId: "inst_" + Date.now() }); };
+        window.leaveGame = function() { switchView('main'); };
 
         function startVerificationLoop() {
             checkVerification();
-            verificationTimer = setInterval(checkVerification, 30 * 60 * 1000);
+            window.verificationInterval = setInterval(checkVerification, 30 * 60 * 1000);
         }
 
         async function checkVerification() {
             if (!currentUser || currentUser.isVerified) return;
             let qualified = false;
-
             if (currentUser.totalPlaytime >= 86400000) qualified = true;
-
             if (!qualified) {
-                const assetsSnap = await db.ref('economy/assets').orderByChild('creatorId').equalTo(currentUserId).once('value');
+                const assetsSnap = await dbA.ref('economy/assets').orderByChild('creatorId').equalTo(currentUserId).once('value');
                 if (assetsSnap.exists()) {
                     const thirtyTwoDaysAgo = Date.now() - (32 * 24 * 60 * 60 * 1000);
                     assetsSnap.forEach(c => {
@@ -235,54 +304,45 @@
                     });
                 }
             }
-
             if (qualified) {
-                await db.ref(`users/${currentUserId}/isVerified`).set(true);
+                await dbA.ref(`users/${currentUserId}/isVerified`).set(true);
                 currentUser.isVerified = true;
-                updateUI();
+                updateMainUI();
                 alert("🎉 Congratulations! You have earned the Verified Badge!");
             }
         }
 
-        async function loadGames() {
-            const snap = await db.ref('games').once('value');
-            const html = snap.exists() ? '' : '<p>No games available yet.</p>';
+        async function loadMainGames() {
+            const snap = await dbA.ref('games').once('value');
             let grid = "";
             if(snap.exists()) {
                 snap.forEach(c => {
                     const g = c.val();
-                    grid += `<div class="game-card" onclick="playGame('${c.key}')">
-                        <div class="game-thumb">${g.name}</div>
-                        <div class="game-info"><b>${g.name}</b><br><small>By ${g.creatorName}</small></div>
-                    </div>`;
+                    grid += `<div class="game-card" onclick="playGame('${c.key}')"><div class="game-thumb">${g.name}</div><div class="game-info"><b>${g.name}</b><br><small>By ${g.creatorName}</small></div></div>`;
                 });
-            }
+            } else { grid = "<p>No games available yet.</p>"; }
             document.getElementById('grid-home').innerHTML = grid;
             document.getElementById('grid-games').innerHTML = grid;
         }
 
-        async function loadCatalog() {
-            const snap = await db.ref('economy/assets').once('value');
+        async function loadMainCatalog() {
+            const snap = await dbA.ref('economy/assets').once('value');
             let grid = "";
             if(snap.exists()) {
                 snap.forEach(c => {
                     const i = c.val();
-                    grid += `<div class="card">
-                        <b>${i.name}</b><br><small>By ${i.creatorName}</small><br>
-                        <span style="color:green; font-weight:bold;">${i.price} R$</span><br>
-                        <button class="btn btn-primary" style="margin-top:10px;" onclick="buyItem('${c.key}', ${i.price})">Buy</button>
-                    </div>`;
+                    grid += `<div class="card"><b>${i.name}</b><br><span style="color:green; font-weight:bold;">${i.price} R$</span><br><button class="btn btn-primary" style="margin-top:10px;" onclick="buyItem('${c.key}', ${i.price})">Buy</button></div>`;
                 });
             } else { grid = "<p>Catalog is empty.</p>"; }
             document.getElementById('grid-catalog').innerHTML = grid;
         }
 
         window.buyItem = async function(id, price) {
-            if (currentUser.robuxBalance < price) return alert("Insufficient Robux. Ask an Admin for more!");
-            await db.ref(`users/${currentUserId}/robuxBalance`).set(currentUser.robuxBalance - price);
-            await db.ref(`economy/assets/${id}/copiesSold`).transaction(v => (v || 0) + 1);
+            if (currentUser.robuxBalance < price) return alert("Insufficient Robux. Ask an Admin!");
+            await dbA.ref(`users/${currentUserId}/robuxBalance`).set(currentUser.robuxBalance - price);
+            await dbA.ref(`economy/assets/${id}/copiesSold`).transaction(v => (v || 0) + 1);
             currentUser.robuxBalance -= price;
-            updateUI();
+            updateMainUI();
             alert("Purchase successful!");
         };
 
@@ -290,30 +350,23 @@
             const name = prompt("Game Name:");
             if(!name) return;
             const id = "game_" + Date.now();
-            await db.ref(`games/${id}`).set({
-                name: name, creatorId: currentUserId, creatorName: currentUser.displayName,
-                isActive: true, stats: { playing: 0, visits: 0 }, createdAt: Date.now()
-            });
-            loadGames();
-            alert("Game created! Go to Studio to build it.");
+            await dbA.ref(`games/${id}`).set({ name: name, creatorId: currentUserId, creatorName: currentUser.displayName, isActive: true, stats: { playing: 0, visits: 0 }, createdAt: Date.now() });
+            loadMainGames();
+            alert("Game created! Click the Hammer to build it.");
         };
 
-        window.updateAvatar = function(part, color) {
-            db.ref(`users/${currentUserId}/avatar/${part}`).set(color);
-        };
+        window.updateAvatar = function(part, color) { dbA.ref(`users/${currentUserId}/avatar/${part}`).set(color); };
 
         window.adminGiveRobux = async function() {
             if (currentUser.role !== 'admin') return alert("Access Denied.");
             const target = document.getElementById('adm-target').value.trim();
             const amt = parseInt(document.getElementById('adm-amount').value);
             if(!target || !amt) return;
-
-            const snap = await db.ref('users').orderByChild('displayName').equalTo(target).once('value');
+            const snap = await dbA.ref('users').orderByChild('displayName').equalTo(target).once('value');
             if(snap.exists()) {
                 let tid = null; snap.forEach(c => tid = c.key);
-                const userSnap = await db.ref(`users/${tid}`).once('value');
-                const newBal = (userSnap.val().robuxBalance || 0) + amt;
-                await db.ref(`users/${tid}/robuxBalance`).set(newBal);
+                const userSnap = await dbA.ref(`users/${tid}`).once('value');
+                await dbA.ref(`users/${tid}/robuxBalance`).set((userSnap.val().robuxBalance || 0) + amt);
                 alert(`Gave ${amt} R$ to ${target}`);
             } else { alert("User not found."); }
         };
@@ -321,15 +374,362 @@
         window.adminToggleBadge = async function(badge) {
             if (currentUser.role !== 'admin') return alert("Access Denied.");
             const target = document.getElementById('badge-target').value.trim();
-            const snap = await db.ref('users').orderByChild('displayName').equalTo(target).once('value');
+            const snap = await dbA.ref('users').orderByChild('displayName').equalTo(target).once('value');
             if(snap.exists()) {
                 let tid = null; snap.forEach(c => tid = c.key);
-                const userSnap = await db.ref(`users/${tid}`).once('value');
-                const currentVal = userSnap.val()[badge] || false;
-                await db.ref(`users/${tid}/${badge}`).set(!currentVal);
+                const userSnap = await dbA.ref(`users/${tid}`).once('value');
+                await dbA.ref(`users/${tid}/${badge}`).set(!userSnap.val()[badge]);
                 alert(`Toggled ${badge} for ${target}`);
             } else { alert("User not found."); }
         };
+
+        // ==========================================
+        // 4. PLAYER MODULE (DYNAMIC LOAD)
+        // ==========================================
+        let playerScene, playerCamera, playerRenderer, playerAnimationId;
+        let playerCharacter, playerRemotePlayers = {};
+        let playerKeys = {};
+        let playerChatRef, playerPlayersRef, playerMyRef;
+
+        function initPlayer(placeId, instanceId) {
+            if (!placeId) return;
+            document.getElementById('player-info').innerText = `Game: ${placeId}`;
+
+            const container = document.getElementById('player-canvas-container');
+            playerScene = new THREE.Scene();
+            playerScene.background = new THREE.Color(0x87CEEB);
+            playerCamera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            playerRenderer = new THREE.WebGLRenderer({ antialias: true });
+            playerRenderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(playerRenderer.domElement);
+
+            playerScene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            const sun = new THREE.DirectionalLight(0xffffff, 0.8); sun.position.set(50, 100, 50); playerScene.add(sun);
+            const base = new THREE.Mesh(new THREE.BoxGeometry(500, 1, 500), new THREE.MeshStandardMaterial({ color: 0x228B22 }));
+            base.position.y = -0.5; playerScene.add(base);
+
+            playerCharacter = new THREE.Group();
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 1), new THREE.MeshStandardMaterial({ color: 0x0054E3 }));
+            torso.position.y = 2.5; playerCharacter.add(torso);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), new THREE.MeshStandardMaterial({ color: 0xFFE0BD }));
+            head.position.y = 4.25; playerCharacter.add(head);
+            playerScene.add(playerCharacter);
+
+            let camAngleX = 0, camAngleY = 0.5, camDist = 15;
+            playerRenderer.domElement.addEventListener('click', () => playerRenderer.domElement.requestPointerLock());
+            
+            const mouseMoveHandler = (e) => {
+                if (currentView !== 'player' || !document.pointerLockElement) return;
+                camAngleX -= e.movementX * 0.002;
+                camAngleY -= e.movementY * 0.002;
+                camAngleY = Math.max(-0.5, Math.min(1.5, camAngleY));
+            };
+            document.addEventListener('mousemove', mouseMoveHandler);
+            window.playerMouseMoveHandler = mouseMoveHandler;
+
+            const vel = new THREE.Vector3(); let grounded = true;
+            
+            function update() {
+                const speed = 0.2;
+                const fwd = new THREE.Vector3(-Math.sin(camAngleX), 0, -Math.cos(camAngleX));
+                const right = new THREE.Vector3(Math.cos(camAngleX), 0, -Math.sin(camAngleX));
+                if(playerKeys['KeyW']) playerCharacter.position.add(fwd.clone().multiplyScalar(speed));
+                if(playerKeys['KeyS']) playerCharacter.position.add(fwd.clone().multiplyScalar(-speed));
+                if(playerKeys['KeyA']) playerCharacter.position.add(right.clone().multiplyScalar(-speed));
+                if(playerKeys['KeyD']) playerCharacter.position.add(right.clone().multiplyScalar(speed));
+                if(playerKeys['Space'] && grounded) { vel.y = 0.3; grounded = false; }
+                vel.y -= 0.015; playerCharacter.position.y += vel.y;
+                if(playerCharacter.position.y <= 0) { playerCharacter.position.y = 0; vel.y = 0; grounded = true; }
+                playerCharacter.rotation.y = camAngleX;
+
+                const offset = new THREE.Vector3(Math.sin(camAngleX) * Math.cos(camAngleY) * camDist, Math.sin(camAngleY) * camDist + 3, Math.cos(camAngleX) * Math.cos(camAngleY) * camDist);
+                playerCamera.position.copy(playerCharacter.position).add(offset);
+                playerCamera.lookAt(playerCharacter.position.x, playerCharacter.position.y + 2, playerCharacter.position.z);
+            }
+
+            playerMyRef = dbB.ref(`gameSessions/${placeId}/${instanceId}/players/${currentUserId}`);
+            playerPlayersRef = dbB.ref(`gameSessions/${placeId}/${instanceId}/players`);
+            playerChatRef = dbB.ref(`gameSessions/${placeId}/${instanceId}/chatMessages`);
+
+            setInterval(() => {
+                if(currentView !== 'player') return;
+                playerMyRef.set({ userId: currentUserId, pos: { x: playerCharacter.position.x, y: playerCharacter.position.y, z: playerCharacter.position.z }, rot: playerCharacter.rotation.y, t: Date.now() });
+            }, 100);
+
+            window.playtimeInterval = setInterval(() => {
+                if(currentView !== 'player') return;
+                dbA.ref(`users/${currentUserId}/totalPlaytime`).transaction(curr => (curr || 0) + 10000);
+            }, 10000);
+
+            playerPlayersRef.on('child_added', s => {
+                if(s.key === currentUserId) return;
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(2, 4, 1), new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff }));
+                playerScene.add(mesh);
+                playerRemotePlayers[s.key] = mesh;
+            });
+            playerPlayersRef.on('child_changed', s => {
+                if(s.key === currentUserId) return;
+                const d = s.val();
+                if(playerRemotePlayers[s.key]) {
+                    playerRemotePlayers[s.key].position.set(d.pos.x, d.pos.y, d.pos.z);
+                    playerRemotePlayers[s.key].rotation.y = d.rot;
+                }
+            });
+            playerPlayersRef.on('child_removed', s => {
+                if(playerRemotePlayers[s.key]) { playerScene.remove(playerRemotePlayers[s.key]); delete playerRemotePlayers[s.key]; }
+            });
+
+            playerChatRef.limitToLast(10).on('child_added', s => {
+                const d = s.val();
+                const div = document.createElement('div');
+                div.innerText = `${d.sender}: ${d.msg}`;
+                document.getElementById('player-chat-msgs').appendChild(div);
+                document.getElementById('player-chat-msgs').scrollTop = 99999;
+            });
+
+            function animate() {
+                if(currentView !== 'player') return;
+                playerAnimationId = requestAnimationFrame(animate);
+                update();
+                playerRenderer.render(playerScene, playerCamera);
+            }
+            animate();
+        }
+
+        function cleanupPlayer() {
+            if (playerAnimationId) cancelAnimationFrame(playerAnimationId);
+            if (window.playtimeInterval) clearInterval(window.playtimeInterval);
+            if (document.pointerLockElement) document.exitPointerLock();
+            
+            if (playerMyRef) playerMyRef.remove();
+            if (playerPlayersRef) playerPlayersRef.off();
+            if (playerChatRef) playerChatRef.off();
+            
+            if (window.playerMouseMoveHandler) document.removeEventListener('mousemove', window.playerMouseMoveHandler);
+            
+            if (playerRenderer) {
+                playerRenderer.dispose();
+                playerRenderer.forceContextLoss();
+                document.getElementById('player-canvas-container').innerHTML = '';
+                playerRenderer = null;
+            }
+            playerScene = null; playerCamera = null; playerRemotePlayers = {};
+            document.getElementById('player-chat-msgs').innerHTML = '';
+        }
+
+        window.handlePlayerChat = function(e) {
+            if(e.code === 'Enter') {
+                const inp = document.getElementById('player-chat-input');
+                if(inp.value && playerChatRef) {
+                    playerChatRef.push({ sender: currentUser.displayName.substring(0,5), msg: inp.value, t: Date.now() });
+                    inp.value = "";
+                }
+            }
+        };
+
+        document.addEventListener('keydown', e => { if(currentView === 'player') playerKeys[e.code] = true; });
+        document.addEventListener('keyup', e => { if(currentView === 'player') playerKeys[e.code] = false; });
+
+        // ==========================================
+        // 5. STUDIO MODULE (DYNAMIC LOAD)
+        // ==========================================
+        let studioScene, studioCamera, studioRenderer, studioAnimationId;
+        let studioSelected = null, studioObjects = [];
+        let currentProjectId = null;
+        let camTheta = 0, camPhi = Math.PI/4, camRadius = 50;
+        let isDragging = false, prevX = 0, prevY = 0;
+
+        function initStudio(projectId) {
+            currentProjectId = projectId;
+            const container = document.getElementById('studio-viewport-container');
+            studioScene = new THREE.Scene();
+            studioScene.background = new THREE.Color(0x222222);
+            studioCamera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 2000);
+            studioRenderer = new THREE.WebGLRenderer({ antialias: true });
+            studioRenderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(studioRenderer.domElement);
+
+            studioScene.add(new THREE.AmbientLight(0xffffff, 0.5));
+            const sun = new THREE.DirectionalLight(0xffffff, 0.8); sun.position.set(50, 100, 50); studioScene.add(sun);
+            studioScene.add(new THREE.GridHelper(100, 100, 0x555555, 0x333333));
+
+            const mouseDownHandler = e => { isDragging = true; prevX = e.clientX; prevY = e.clientY; };
+            const mouseUpHandler = () => isDragging = false;
+            const mouseMoveHandler = e => {
+                if (currentView !== 'studio' || !isDragging) return;
+                camTheta -= (e.clientX - prevX) * 0.01;
+                camPhi -= (e.clientY - prevY) * 0.01;
+                camPhi = Math.max(0.1, Math.min(Math.PI - 0.1, camPhi));
+                prevX = e.clientX; prevY = e.clientY;
+                updateStudioCam();
+            };
+            const wheelHandler = e => { if(currentView !== 'studio') return; camRadius += e.deltaY * 0.05; updateStudioCam(); };
+            const dblClickHandler = e => {
+                if(currentView !== 'studio') return;
+                const rect = studioRenderer.domElement.getBoundingClientRect();
+                const mouse = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+                const raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera(mouse, studioCamera);
+                const hits = raycaster.intersectObjects(studioObjects);
+                selectStudioObj(hits.length > 0 ? hits[0].object : null);
+            };
+
+            studioRenderer.domElement.addEventListener('mousedown', mouseDownHandler);
+            window.addEventListener('mouseup', mouseUpHandler);
+            window.addEventListener('mousemove', mouseMoveHandler);
+            studioRenderer.domElement.addEventListener('wheel', wheelHandler);
+            studioRenderer.domElement.addEventListener('dblclick', dblClickHandler);
+
+            window.studioHandlers = { mouseDownHandler, mouseUpHandler, mouseMoveHandler, wheelHandler, dblClickHandler };
+
+            updateStudioCam();
+            loadStudioProject();
+
+            function animate() {
+                if(currentView !== 'studio') return;
+                studioAnimationId = requestAnimationFrame(animate);
+                studioRenderer.render(studioScene, studioCamera);
+            }
+            animate();
+        }
+
+        function updateStudioCam() {
+            if(!studioCamera) return;
+            studioCamera.position.x = camRadius * Math.sin(camPhi) * Math.sin(camTheta);
+            studioCamera.position.y = camRadius * Math.cos(camPhi);
+            studioCamera.position.z = camRadius * Math.sin(camPhi) * Math.cos(camTheta);
+            studioCamera.lookAt(0,0,0);
+        }
+
+        function cleanupStudio() {
+            if (studioAnimationId) cancelAnimationFrame(studioAnimationId);
+            if (window.studioHandlers) {
+                studioRenderer.domElement.removeEventListener('mousedown', window.studioHandlers.mouseDownHandler);
+                window.removeEventListener('mouseup', window.studioHandlers.mouseUpHandler);
+                window.removeEventListener('mousemove', window.studioHandlers.mouseMoveHandler);
+                studioRenderer.domElement.removeEventListener('wheel', window.studioHandlers.wheelHandler);
+                studioRenderer.domElement.removeEventListener('dblclick', window.studioHandlers.dblClickHandler);
+            }
+            if (studioRenderer) {
+                studioRenderer.dispose();
+                studioRenderer.forceContextLoss();
+                document.getElementById('studio-viewport-container').innerHTML = '';
+                studioRenderer = null;
+            }
+            studioScene = null; studioCamera = null; studioObjects = []; studioSelected = null;
+            document.getElementById('studio-explorer-list').innerHTML = '';
+            document.getElementById('studio-props').innerHTML = 'Select an object';
+        }
+
+        window.addStudioPart = function(type) {
+            let geom;
+            if(type==='block') geom = new THREE.BoxGeometry(4,4,4);
+            else if(type==='sphere') geom = new THREE.SphereGeometry(2);
+            else if(type==='cylinder') geom = new THREE.CylinderGeometry(2,2,4);
+            else geom = new THREE.BoxGeometry(6,1,6);
+
+            const mat = new THREE.MeshStandardMaterial({ color: type==='spawn' ? 0x00ff00 : 0x808080 });
+            const mesh = new THREE.Mesh(geom, mat);
+            mesh.position.y = 2;
+            mesh.userData = { type: type, name: type + "_" + studioObjects.length };
+            studioScene.add(mesh);
+            studioObjects.push(mesh);
+            selectStudioObj(mesh);
+        };
+
+        function selectStudioObj(obj) {
+            if(studioSelected) studioSelected.material.emissive.setHex(0x000000);
+            studioSelected = obj;
+            if(studioSelected) studioSelected.material.emissive.setHex(0x333333);
+            renderStudioExplorer(); renderStudioProps();
+        }
+
+        function renderStudioExplorer() {
+            const list = document.getElementById('studio-explorer-list');
+            list.innerHTML = '';
+            studioObjects.forEach(o => {
+                const div = document.createElement('div');
+                div.className = 'exp-item' + (o===studioSelected ? ' sel' : '');
+                div.innerText = o.userData.name;
+                div.onclick = () => selectStudioObj(o);
+                list.appendChild(div);
+            });
+        }
+
+        function renderStudioProps() {
+            const p = document.getElementById('studio-props');
+            if(!studioSelected) { p.innerHTML = "Select an object"; return; }
+            p.innerHTML = `
+                <label>Name</label>
+                <input type="text" value="${studioSelected.userData.name}" onchange="studioSelected.userData.name=this.value; renderStudioExplorer();">
+                <label>Position X</label>
+                <input type="number" step="0.1" value="${studioSelected.position.x.toFixed(1)}" onchange="studioSelected.position.x=parseFloat(this.value)">
+                <label>Position Y</label>
+                <input type="number" step="0.1" value="${studioSelected.position.y.toFixed(1)}" onchange="studioSelected.position.y=parseFloat(this.value)">
+                <label>Position Z</label>
+                <input type="number" step="0.1" value="${studioSelected.position.z.toFixed(1)}" onchange="studioSelected.position.z=parseFloat(this.value)">
+                <label>Color</label>
+                <input type="color" value="#${studioSelected.material.color.getHexString()}" onchange="studioSelected.material.color.setStyle(this.value)">
+                <button class="btn btn-red" style="width:100%; margin-top:10px;" onclick="deleteStudioObj()">Delete</button>
+            `;
+        }
+
+        window.deleteStudioObj = function() {
+            if(!studioSelected) return;
+            studioScene.remove(studioSelected);
+            studioObjects.splice(studioObjects.indexOf(studioSelected), 1);
+            selectStudioObj(null);
+        };
+
+        window.saveProject = async function() {
+            document.getElementById('studio-status').innerText = "Saving...";
+            const data = studioObjects.map(o => ({
+                name: o.userData.name, type: o.userData.type,
+                pos: { x:o.position.x, y:o.position.y, z:o.position.z },
+                color: "#" + o.material.color.getHexString()
+            }));
+            await dbB.ref(`studioProjects/${currentProjectId}`).set({
+                creatorId: currentUserId, creatorName: currentUser.displayName, name: "My Project",
+                updatedAt: Date.now(), instances: data
+            });
+            document.getElementById('studio-status').innerText = "Saved!";
+        };
+
+        window.publishGame = async function() {
+            await window.saveProject();
+            document.getElementById('studio-status').innerText = "Publishing...";
+            const name = prompt("Game Name:", "My Awesome Game");
+            if(!name) return;
+            const placeId = "place_" + Date.now();
+            await dbA.ref(`games/${placeId}`).set({
+                name: name, creatorId: currentUserId, creatorName: currentUser.displayName,
+                isActive: true, stats: { playing: 0, visits: 0 },
+                projectId: currentProjectId, createdAt: Date.now()
+            });
+            alert(`Published! ID: ${placeId}`);
+            document.getElementById('studio-status').innerText = "Published!";
+        };
+
+        async function loadStudioProject() {
+            const snap = await dbB.ref(`studioProjects/${currentProjectId}`).once('value');
+            if(snap.exists()) {
+                const data = snap.val().instances || [];
+                data.forEach(inst => {
+                    let geom;
+                    if(inst.type==='block') geom = new THREE.BoxGeometry(4,4,4);
+                    else if(inst.type==='sphere') geom = new THREE.SphereGeometry(2);
+                    else if(inst.type==='cylinder') geom = new THREE.CylinderGeometry(2,2,4);
+                    else geom = new THREE.BoxGeometry(6,1,6);
+                    const mat = new THREE.MeshStandardMaterial({ color: inst.color });
+                    const mesh = new THREE.Mesh(geom, mat);
+                    mesh.position.set(inst.pos.x, inst.pos.y, inst.pos.z);
+                    mesh.userData = { type: inst.type, name: inst.name };
+                    studioScene.add(mesh);
+                    studioObjects.push(mesh);
+                });
+                renderStudioExplorer();
+            }
+        }
     </script>
 </body>
 </html>
