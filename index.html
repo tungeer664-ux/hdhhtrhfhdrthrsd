@@ -3,71 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roblox Clone - SPA</title>
+    <title>Roblox Clone - Ultimate SPA</title>
     <style>
-        /* --- GLOBAL & RESET --- */
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f3f3f3; }
-        .view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; }
+        /* --- GLOBAL RESET & VARIABLES --- */
+        :root {
+            --bg-dark: #232527;
+            --bg-light: #f3f3f3;
+            --accent-blue: #00a2ff;
+            --accent-green: #00b06f;
+            --accent-red: #e34c4c;
+            --accent-yellow: #f5cd35;
+            --text-light: #ffffff;
+            --text-dark: #333333;
+            --panel-dark: #252526;
+            --border-dark: #444444;
+        }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-light); color: var(--text-dark); }
+        .view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; }
         .view.active { display: flex; }
-        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-primary { background: #00a2ff; color: white; }
-        .btn-green { background: #00b06f; color: white; }
-        .btn-red { background: #e34c4c; color: white; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 14px; }
         .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-        input, select { padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
+        .btn-primary { background: var(--accent-blue); color: white; }
+        .btn-green { background: var(--accent-green); color: white; }
+        .btn-red { background: var(--accent-red); color: white; }
+        .btn-yellow { background: var(--accent-yellow); color: black; }
+        input, select, textarea { padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; font-family: inherit; }
 
         /* --- AUTH MODAL --- */
         #auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 9999; }
         .modal-box { background: white; padding: 40px; border-radius: 12px; width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
 
-        /* --- VIEW: MAIN WEBSITE --- */
-        #view-main { flex-direction: column; background: #f3f3f3; }
-        #main-topbar { background: #232527; color: white; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; height: 50px; flex-shrink: 0; z-index: 100; }
+        /* --- MAIN WEBSITE VIEW --- */
+        #view-main { background: var(--bg-light); }
+        #main-topbar { background: var(--bg-dark); color: white; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; height: 50px; flex-shrink: 0; z-index: 100; }
         #main-topbar .logo { font-size: 24px; font-weight: bold; color: white; text-decoration: none; cursor: pointer; }
-        .robux-display { color: #00b06f; font-weight: bold; font-size: 18px; }
-        #main-body-container { display: flex; flex: 1; overflow: hidden; }
-        #main-sidebar { width: 220px; background: #232527; padding-top: 10px; overflow-y: auto; flex-shrink: 0; }
+        .robux-display { color: var(--accent-green); font-weight: bold; font-size: 18px; margin-right: 10px; }
+        #main-body { display: flex; flex: 1; overflow: hidden; }
+        #main-sidebar { width: 220px; background: var(--bg-dark); padding-top: 10px; overflow-y: auto; flex-shrink: 0; }
         .nav-item { padding: 15px 20px; color: #b8b8b8; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 16px; border-left: 4px solid transparent; }
-        .nav-item:hover, .nav-item.active { background: #393b3d; color: white; border-left: 4px solid #00a2ff; }
+        .nav-item:hover, .nav-item.active { background: #393b3d; color: white; border-left: 4px solid var(--accent-blue); }
         #main-content { flex: 1; overflow-y: auto; padding: 20px; }
         .main-page { display: none; }
         .main-page.active { display: block; }
         .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        #hammer-btn { position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: #f5cd35; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 35px; z-index: 1000; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s; }
+        #hammer-btn { position: fixed; bottom: 30px; left: 250px; width: 60px; height: 60px; background: var(--accent-yellow); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 30px; z-index: 1000; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s; }
         #hammer-btn:hover { transform: scale(1.1) rotate(15deg); }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
         .game-card { background: white; border-radius: 8px; overflow: hidden; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .game-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         .game-thumb { width: 100%; height: 130px; background: #ddd; display: flex; align-items: center; justify-content: center; color: #666; font-size: 20px; font-weight: bold; }
         .game-info { padding: 12px; }
-        .badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: bold; color: white; margin-left: 5px; }
-        .badge-premium { background: #00b06f; }
-        .badge-verified { background: #00a2ff; }
-        .badge-admin { background: #e34c4c; }
+        .badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: bold; color: white; margin-left: 5px; vertical-align: middle; }
+        .badge-premium { background: var(--accent-green); }
+        .badge-verified { background: var(--accent-blue); }
+        .badge-admin { background: var(--accent-red); }
 
-        /* --- VIEW: PLAYER --- */
-        #view-player { background: #000; flex-direction: column; }
+        /* --- PLAYER VIEW --- */
+        #view-player { background: #000; }
         #player-canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
         #player-hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
         #player-chat { position: absolute; top: 10px; left: 10px; width: 300px; height: 200px; background: rgba(0,0,0,0.6); color: white; padding: 10px; border-radius: 5px; pointer-events: auto; display: flex; flex-direction: column; }
         #player-chat-msgs { flex: 1; overflow-y: auto; font-size: 14px; }
-        #player-chat-input { width: 100%; background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px; margin-top: 5px; pointer-events: auto; }
+        #player-chat-input { width: 100%; background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px; margin-top: 5px; pointer-events: auto; box-sizing: border-box; }
         #player-leave-btn { position: absolute; top: 10px; right: 10px; pointer-events: auto; }
         #player-info { position: absolute; bottom: 10px; left: 10px; color: white; background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 5px; font-size: 12px; pointer-events: none; }
 
-        /* --- VIEW: STUDIO --- */
-        #view-studio { flex-direction: column; background: #1e1e1e; color: white; }
-        #studio-toolbar { background: #2d2d2d; padding: 10px; display: flex; gap: 10px; border-bottom: 1px solid #444; flex-shrink: 0; }
-        #studio-main-container { display: flex; flex: 1; overflow: hidden; }
-        #studio-toolbox { width: 200px; background: #252526; padding: 10px; border-right: 1px solid #444; overflow-y: auto; flex-shrink: 0; }
-        #studio-viewport-container { flex: 1; position: relative; background: #333; }
-        #studio-right-panel { width: 300px; background: #252526; display: flex; flex-direction: column; border-left: 1px solid #444; flex-shrink: 0; }
+        /* --- STUDIO VIEW --- */
+        #view-studio { background: #1e1e1e; color: white; }
+        #studio-toolbar { background: #2d2d2d; padding: 10px; display: flex; gap: 10px; border-bottom: 1px solid var(--border-dark); flex-shrink: 0; align-items: center; }
+        #studio-main { display: flex; flex: 1; overflow: hidden; }
+        #studio-toolbox { width: 200px; background: var(--panel-dark); padding: 10px; border-right: 1px solid var(--border-dark); overflow-y: auto; flex-shrink: 0; }
+        #studio-viewport-container { flex: 1; position: relative; background: #333; overflow: hidden; }
+        #studio-right { width: 300px; background: var(--panel-dark); display: flex; flex-direction: column; border-left: 1px solid var(--border-dark); flex-shrink: 0; }
         .tool-item { padding: 10px; background: #3e3e42; margin-bottom: 5px; cursor: pointer; border-radius: 4px; text-align: center; }
         .tool-item:hover { background: #505055; }
-        .exp-item { padding: 5px; cursor: pointer; font-size: 14px; }
+        .exp-item { padding: 5px; cursor: pointer; font-size: 14px; border-radius: 3px; }
         .exp-item:hover, .exp-item.sel { background: #094771; }
-        .panel { flex: 1; padding: 10px; overflow-y: auto; border-bottom: 1px solid #444; }
-        h3 { margin: 10px 0; font-size: 16px; border-bottom: 1px solid #444; padding-bottom: 5px;}
+        .panel { flex: 1; padding: 10px; overflow-y: auto; border-bottom: 1px solid var(--border-dark); }
+        .panel input, .panel select { background: #333; border: 1px solid #555; color: white; }
+        h3 { margin: 10px 0; font-size: 16px; border-bottom: 1px solid var(--border-dark); padding-bottom: 5px;}
+        label { font-size: 12px; color: #aaa; display: block; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -76,7 +91,7 @@
     <div id="auth-modal">
         <div class="modal-box">
             <h2 style="margin-top:0;">Welcome to Roblox</h2>
-            <p style="color:#666;">Sign in to continue</p>
+            <p style="color:#666;">Sign in or Register</p>
             <input type="text" id="auth-user" placeholder="Username">
             <input type="password" id="auth-pass" placeholder="Password">
             <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="handleAuth()">Login / Register</button>
@@ -84,7 +99,7 @@
         </div>
     </div>
 
-    <!-- VIEW: MAIN WEBSITE -->
+    <!-- VIEW 1: MAIN WEBSITE -->
     <div id="view-main" class="view active">
         <div id="main-topbar">
             <span class="logo" onclick="showMainPage('home')">ROBLOX</span>
@@ -95,7 +110,7 @@
                 <button class="btn btn-red" style="padding: 5px 10px; font-size: 12px;" onclick="logout()">Logout</button>
             </div>
         </div>
-        <div id="main-body-container">
+        <div id="main-body">
             <div id="main-sidebar">
                 <div class="nav-item active" onclick="showMainPage('home')">🏠 Home</div>
                 <div class="nav-item" onclick="showMainPage('games')">🎮 Games</div>
@@ -104,39 +119,46 @@
                 <div class="nav-item" id="nav-admin" style="display:none;" onclick="showMainPage('admin')">🛡️ Admin Panel</div>
             </div>
             <div id="main-content">
+                <!-- HOME -->
                 <div id="page-home" class="main-page active">
                     <h2>Featured Games</h2>
                     <div class="grid" id="grid-home"></div>
                 </div>
+                <!-- GAMES -->
                 <div id="page-games" class="main-page">
                     <h2>All Games</h2>
                     <button class="btn btn-green" onclick="createGame()">+ Create New Game</button>
                     <div class="grid" id="grid-games" style="margin-top:20px;"></div>
                 </div>
+                <!-- CATALOG -->
                 <div id="page-catalog" class="main-page">
                     <h2>Catalog</h2>
                     <div class="grid" id="grid-catalog"></div>
                 </div>
+                <!-- AVATAR -->
                 <div id="page-avatar" class="main-page">
                     <h2>Avatar Editor</h2>
                     <div class="card">
                         <h3>Customize Colors</h3>
-                        <label>Torso Color:</label>
-                        <input type="color" id="col-torso" value="#0054E3" onchange="updateAvatar('torsoColor', this.value)">
-                        <label>Head Color:</label>
-                        <input type="color" id="col-head" value="#FFE0BD" onchange="updateAvatar('headColor', this.value)">
+                        <label>Head Color:</label><input type="color" id="col-head" value="#FFE0BD" onchange="updateAvatar('headColor', this.value)">
+                        <label>Torso Color:</label><input type="color" id="col-torso" value="#0054E3" onchange="updateAvatar('torsoColor', this.value)">
+                        <label>Left Arm:</label><input type="color" id="col-larm" value="#FFE0BD" onchange="updateAvatar('leftArmColor', this.value)">
+                        <label>Right Arm:</label><input type="color" id="col-rarm" value="#FFE0BD" onchange="updateAvatar('rightArmColor', this.value)">
+                        <label>Left Leg:</label><input type="color" id="col-lleg" value="#0054E3" onchange="updateAvatar('leftLegColor', this.value)">
+                        <label>Right Leg:</label><input type="color" id="col-rleg" value="#0054E3" onchange="updateAvatar('rightLegColor', this.value)">
                     </div>
                 </div>
+                <!-- ADMIN -->
                 <div id="page-admin" class="main-page">
                     <h2>Admin Panel</h2>
                     <div class="card">
-                        <h3>💰 Distribute Robux</h3>
+                        <h3>💰 Distribute Robux (Admin Only)</h3>
                         <input type="text" id="adm-target" placeholder="Target Username">
                         <input type="number" id="adm-amount" placeholder="Amount">
                         <button class="btn btn-green" onclick="adminGiveRobux()">Give Robux</button>
                     </div>
                     <div class="card">
-                        <h3>🏅 Manage Badges</h3>
+                        <h3>🏅 Manage Badges (Admin Only)</h3>
                         <input type="text" id="badge-target" placeholder="Target Username">
                         <button class="btn btn-primary" onclick="adminToggleBadge('isPremium')">Toggle Premium</button>
                         <button class="btn btn-primary" onclick="adminToggleBadge('isVerified')">Toggle Verified</button>
@@ -147,7 +169,7 @@
         <button id="hammer-btn" onclick="openStudio()" title="Open Studio">🔨</button>
     </div>
 
-    <!-- VIEW: PLAYER -->
+    <!-- VIEW 2: PLAYER -->
     <div id="view-player" class="view">
         <div id="player-canvas-container"></div>
         <div id="player-hud">
@@ -155,20 +177,20 @@
                 <div id="player-chat-msgs"></div>
                 <input type="text" id="player-chat-input" placeholder="Press Enter to chat..." onkeydown="handlePlayerChat(event)">
             </div>
-            <button id="player-leave-btn" class="btn btn-red" onclick="leaveGame()">Leave Game</button>
+            <button id="player-leave-btn" class="btn btn-red" onclick="switchView('main')">Leave Game</button>
             <div id="player-info">Loading...</div>
         </div>
     </div>
 
-    <!-- VIEW: STUDIO -->
+    <!-- VIEW 3: STUDIO -->
     <div id="view-studio" class="view">
         <div id="studio-toolbar">
             <button class="btn btn-red" onclick="switchView('main')">Exit Studio</button>
             <button class="btn btn-primary" onclick="saveProject()">💾 Save</button>
             <button class="btn btn-green" onclick="publishGame()">🚀 Publish</button>
-            <span style="margin-left:auto; align-self:center; color:#aaa;" id="studio-status">Ready</span>
+            <span style="margin-left:auto; color:#aaa;" id="studio-status">Ready</span>
         </div>
-        <div id="studio-main-container">
+        <div id="studio-main">
             <div id="studio-toolbox">
                 <h3>Toolbox</h3>
                 <div class="tool-item" onclick="addStudioPart('block')">📦 Block</div>
@@ -177,7 +199,7 @@
                 <div class="tool-item" onclick="addStudioPart('spawn')">🚩 Spawn</div>
             </div>
             <div id="studio-viewport-container"></div>
-            <div id="studio-right-panel">
+            <div id="studio-right">
                 <div class="panel">
                     <h3>Explorer</h3>
                     <div id="studio-explorer-list"></div>
@@ -190,14 +212,14 @@
         </div>
     </div>
 
-    <!-- SCRIPTS -->
+    <!-- SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
     <script>
         // ==========================================
-        // 1. CORE & FIREBASE INITIALIZATION
+        // 1. FIREBASE INITIALIZATION
         // ==========================================
         const appA = firebase.initializeApp({ databaseURL: "https://roblox-bd310-default-rtdb.firebaseio.com/" }, "A");
         const appB = firebase.initializeApp({ databaseURL: "https://roblox-everything-else-default-rtdb.firebaseio.com/" }, "B");
@@ -207,11 +229,13 @@
         let currentView = 'main';
         let currentUser = null;
         let currentUserId = null;
+        let verificationInterval = null;
 
         // ==========================================
-        // 2. VIEW ROUTER (SPA LOGIC)
+        // 2. SPA VIEW ROUTER
         // ==========================================
         function switchView(viewName, params = {}) {
+            // Cleanup previous views to prevent memory leaks and errors
             if (currentView === 'player') cleanupPlayer();
             if (currentView === 'studio') cleanupStudio();
 
@@ -221,10 +245,11 @@
 
             if (viewName === 'player') initPlayer(params.placeId, params.instanceId);
             else if (viewName === 'studio') initStudio(params.projectId);
+            else if (viewName === 'main') loadMainGames(); // Refresh games when returning
         }
 
         // ==========================================
-        // 3. MAIN WEBSITE MODULE
+        // 3. MAIN SITE LOGIC
         // ==========================================
         window.handleAuth = async function() {
             const username = document.getElementById('auth-user').value.trim();
@@ -242,7 +267,12 @@
                     else { err.innerText = "Incorrect password"; }
                 } else {
                     currentUserId = "user_" + Date.now();
-                    const newUser = { displayName: username, password: password, role: "user", robuxBalance: 0, totalPlaytime: 0, isPremium: false, isVerified: false, avatar: { headColor: "#FFE0BD", torsoColor: "#0054E3" }, createdAt: Date.now() };
+                    const newUser = { 
+                        displayName: username, password: password, role: "user", 
+                        robuxBalance: 0, totalPlaytime: 0, isPremium: false, isVerified: false, 
+                        avatar: { headColor: "#FFE0BD", torsoColor: "#0054E3", leftArmColor: "#FFE0BD", rightArmColor: "#FFE0BD", leftLegColor: "#0054E3", rightLegColor: "#0054E3" }, 
+                        createdAt: Date.now() 
+                    };
                     await dbA.ref(`users/${currentUserId}`).set(newUser);
                     currentUser = newUser;
                     await enterMainApp();
@@ -252,28 +282,41 @@
 
         async function enterMainApp() {
             document.getElementById('auth-modal').style.display = 'none';
+            
+            // SPECIAL LOGIC: testing44 gets all badges
             if (currentUser.displayName === "testing44") {
                 await dbA.ref(`users/${currentUserId}`).update({ role: "admin", isPremium: true, isVerified: true, robuxBalance: 100000 });
                 currentUser.role = "admin"; currentUser.isPremium = true; currentUser.isVerified = true; currentUser.robuxBalance = 100000;
             }
+
             updateMainUI();
             loadMainGames();
             loadMainCatalog();
-            startVerificationLoop();
+            
+            // 30 Minute Verification Loop
+            checkVerification();
+            verificationInterval = setInterval(checkVerification, 30 * 60 * 1000);
         }
 
         function updateMainUI() {
             document.getElementById('ui-user').innerText = currentUser.displayName;
-            document.getElementById('ui-robux').innerText = currentUser.robuxBalance + " R$";
+            document.getElementById('ui-robux').innerText = (currentUser.robuxBalance || 0) + " R$";
             let badges = "";
             if(currentUser.role === 'admin') badges += "<span class='badge badge-admin'>ADMIN</span>";
             if(currentUser.isPremium) badges += "<span class='badge badge-premium'>PREMIUM</span>";
             if(currentUser.isVerified) badges += "<span class='badge badge-verified'>VERIFIED</span>";
             document.getElementById('ui-badges').innerHTML = badges;
             if(currentUser.role === 'admin') document.getElementById('nav-admin').style.display = 'flex';
+            
+            // Sync avatar colors to UI
+            if(currentUser.avatar) {
+                if(document.getElementById('col-head')) document.getElementById('col-head').value = currentUser.avatar.headColor || "#FFE0BD";
+                if(document.getElementById('col-torso')) document.getElementById('col-torso').value = currentUser.avatar.torsoColor || "#0054E3";
+            }
         }
 
         window.logout = function() { location.reload(); };
+        
         window.showMainPage = function(id) {
             document.querySelectorAll('.main-page').forEach(p => p.classList.remove('active'));
             document.getElementById(`page-${id}`).classList.add('active');
@@ -281,30 +324,34 @@
             if(event && event.currentTarget) event.currentTarget.classList.add('active');
         };
 
-        window.openStudio = function() { switchView('studio', { projectId: "proj_" + Date.now() }); };
-        window.playGame = function(placeId) { switchView('player', { placeId, instanceId: "inst_" + Date.now() }); };
-        window.leaveGame = function() { switchView('main'); };
-
-        function startVerificationLoop() {
-            checkVerification();
-            window.verificationInterval = setInterval(checkVerification, 30 * 60 * 1000);
-        }
+        // SPA Navigation Triggers
+        window.openStudio = function() { 
+            // Generates a project ID or loads existing if we had a list. For now, new project.
+            switchView('studio', { projectId: "proj_" + currentUserId + "_" + Date.now() }); 
+        };
+        
+        window.playGame = function(placeId) { 
+            switchView('player', { placeId: placeId, instanceId: "inst_" + Date.now() }); 
+        };
 
         async function checkVerification() {
             if (!currentUser || currentUser.isVerified) return;
-            let qualified = false;
-            if (currentUser.totalPlaytime >= 86400000) qualified = true;
-            if (!qualified) {
+            let qualifies = false;
+            
+            // 1. 24h playtime
+            if ((currentUser.totalPlaytime || 0) >= 24 * 60 * 60 * 1000) qualifies = true;
+            
+            // 2. 100 sales in 32 days
+            if (!qualifies) {
                 const assetsSnap = await dbA.ref('economy/assets').orderByChild('creatorId').equalTo(currentUserId).once('value');
                 if (assetsSnap.exists()) {
-                    const thirtyTwoDaysAgo = Date.now() - (32 * 24 * 60 * 60 * 1000);
                     assetsSnap.forEach(c => {
-                        const item = c.val();
-                        if (item.createdAt >= thirtyTwoDaysAgo && item.copiesSold >= 100) qualified = true;
+                        if ((c.val().copiesSold || 0) >= 100) qualifies = true;
                     });
                 }
             }
-            if (qualified) {
+            
+            if (qualifies) {
                 await dbA.ref(`users/${currentUserId}/isVerified`).set(true);
                 currentUser.isVerified = true;
                 updateMainUI();
@@ -318,9 +365,12 @@
             if(snap.exists()) {
                 snap.forEach(c => {
                     const g = c.val();
-                    grid += `<div class="game-card" onclick="playGame('${c.key}')"><div class="game-thumb">${g.name}</div><div class="game-info"><b>${g.name}</b><br><small>By ${g.creatorName}</small></div></div>`;
+                    grid += `<div class="game-card" onclick="playGame('${c.key}')">
+                        <div class="game-thumb">${g.name}</div>
+                        <div class="game-info"><b>${g.name}</b><br><small>By ${g.creatorName}</small></div>
+                    </div>`;
                 });
-            } else { grid = "<p>No games available yet.</p>"; }
+            } else { grid = "<p>No games available yet. Create one in the Studio!</p>"; }
             document.getElementById('grid-home').innerHTML = grid;
             document.getElementById('grid-games').innerHTML = grid;
         }
@@ -331,15 +381,17 @@
             if(snap.exists()) {
                 snap.forEach(c => {
                     const i = c.val();
-                    grid += `<div class="card"><b>${i.name}</b><br><span style="color:green; font-weight:bold;">${i.price} R$</span><br><button class="btn btn-primary" style="margin-top:10px;" onclick="buyItem('${c.key}', ${i.price})">Buy</button></div>`;
+                    grid += `<div class="card"><b>${i.name}</b><br><small>By ${i.creatorName || 'System'}</small><br>
+                        <span style="color:green; font-weight:bold;">${i.price} R$</span><br>
+                        <button class="btn btn-primary" style="margin-top:10px;" onclick="buyItem('${c.key}', ${i.price})">Buy</button></div>`;
                 });
             } else { grid = "<p>Catalog is empty.</p>"; }
             document.getElementById('grid-catalog').innerHTML = grid;
         }
 
         window.buyItem = async function(id, price) {
-            if (currentUser.robuxBalance < price) return alert("Insufficient Robux. Ask an Admin!");
-            await dbA.ref(`users/${currentUserId}/robuxBalance`).set(currentUser.robuxBalance - price);
+            if ((currentUser.robuxBalance || 0) < price) return alert("Insufficient Robux. Ask an Admin!");
+            await dbA.ref(`users/${currentUserId}/robuxBalance`).set((currentUser.robuxBalance || 0) - price);
             await dbA.ref(`economy/assets/${id}/copiesSold`).transaction(v => (v || 0) + 1);
             currentUser.robuxBalance -= price;
             updateMainUI();
@@ -350,12 +402,18 @@
             const name = prompt("Game Name:");
             if(!name) return;
             const id = "game_" + Date.now();
-            await dbA.ref(`games/${id}`).set({ name: name, creatorId: currentUserId, creatorName: currentUser.displayName, isActive: true, stats: { playing: 0, visits: 0 }, createdAt: Date.now() });
+            await dbA.ref(`games/${id}`).set({ 
+                name: name, creatorId: currentUserId, creatorName: currentUser.displayName, 
+                isActive: true, stats: { playing: 0, visits: 0 }, createdAt: Date.now() 
+            });
             loadMainGames();
-            alert("Game created! Click the Hammer to build it.");
+            alert("Game created! Click the Hammer to build it in Studio.");
         };
 
-        window.updateAvatar = function(part, color) { dbA.ref(`users/${currentUserId}/avatar/${part}`).set(color); };
+        window.updateAvatar = function(part, color) { 
+            dbA.ref(`users/${currentUserId}/avatar/${part}`).set(color); 
+            currentUser.avatar[part] = color;
+        };
 
         window.adminGiveRobux = async function() {
             if (currentUser.role !== 'admin') return alert("Access Denied.");
@@ -386,239 +444,247 @@
         // ==========================================
         // 4. PLAYER MODULE (DYNAMIC LOAD)
         // ==========================================
-        let playerScene, playerCamera, playerRenderer, playerAnimationId;
-        let playerCharacter, playerRemotePlayers = {};
-        let playerKeys = {};
-        let playerChatRef, playerPlayersRef, playerMyRef;
+        let pScene, pCam, pRenderer, pAnimId, pChar;
+        let pKeys = {}, pRemote = {};
+        let pListeners = {}, pIntervals = {};
+        let pCamX = 0, pCamY = 0.5, pDist = 15, pVelY = 0, pGrounded = true;
 
         function initPlayer(placeId, instanceId) {
-            if (!placeId) return;
             document.getElementById('player-info').innerText = `Game: ${placeId}`;
-
             const container = document.getElementById('player-canvas-container');
-            playerScene = new THREE.Scene();
-            playerScene.background = new THREE.Color(0x87CEEB);
-            playerCamera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-            playerRenderer = new THREE.WebGLRenderer({ antialias: true });
-            playerRenderer.setSize(container.clientWidth, container.clientHeight);
-            container.appendChild(playerRenderer.domElement);
+            
+            pScene = new THREE.Scene();
+            pScene.background = new THREE.Color(0x87CEEB);
+            pCam = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            pRenderer = new THREE.WebGLRenderer({ antialias: true });
+            pRenderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(pRenderer.domElement);
 
-            playerScene.add(new THREE.AmbientLight(0xffffff, 0.6));
-            const sun = new THREE.DirectionalLight(0xffffff, 0.8); sun.position.set(50, 100, 50); playerScene.add(sun);
+            pScene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            const sun = new THREE.DirectionalLight(0xffffff, 0.8); sun.position.set(50, 100, 50); pScene.add(sun);
+            
+            // Baseplate
             const base = new THREE.Mesh(new THREE.BoxGeometry(500, 1, 500), new THREE.MeshStandardMaterial({ color: 0x228B22 }));
-            base.position.y = -0.5; playerScene.add(base);
+            base.position.y = -0.5; pScene.add(base);
 
-            playerCharacter = new THREE.Group();
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 1), new THREE.MeshStandardMaterial({ color: 0x0054E3 }));
-            torso.position.y = 2.5; playerCharacter.add(torso);
-            const head = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), new THREE.MeshStandardMaterial({ color: 0xFFE0BD }));
-            head.position.y = 4.25; playerCharacter.add(head);
-            playerScene.add(playerCharacter);
-
-            let camAngleX = 0, camAngleY = 0.5, camDist = 15;
-            playerRenderer.domElement.addEventListener('click', () => playerRenderer.domElement.requestPointerLock());
-            
-            const mouseMoveHandler = (e) => {
-                if (currentView !== 'player' || !document.pointerLockElement) return;
-                camAngleX -= e.movementX * 0.002;
-                camAngleY -= e.movementY * 0.002;
-                camAngleY = Math.max(-0.5, Math.min(1.5, camAngleY));
-            };
-            document.addEventListener('mousemove', mouseMoveHandler);
-            window.playerMouseMoveHandler = mouseMoveHandler;
-
-            const vel = new THREE.Vector3(); let grounded = true;
-            
-            function update() {
-                const speed = 0.2;
-                const fwd = new THREE.Vector3(-Math.sin(camAngleX), 0, -Math.cos(camAngleX));
-                const right = new THREE.Vector3(Math.cos(camAngleX), 0, -Math.sin(camAngleX));
-                if(playerKeys['KeyW']) playerCharacter.position.add(fwd.clone().multiplyScalar(speed));
-                if(playerKeys['KeyS']) playerCharacter.position.add(fwd.clone().multiplyScalar(-speed));
-                if(playerKeys['KeyA']) playerCharacter.position.add(right.clone().multiplyScalar(-speed));
-                if(playerKeys['KeyD']) playerCharacter.position.add(right.clone().multiplyScalar(speed));
-                if(playerKeys['Space'] && grounded) { vel.y = 0.3; grounded = false; }
-                vel.y -= 0.015; playerCharacter.position.y += vel.y;
-                if(playerCharacter.position.y <= 0) { playerCharacter.position.y = 0; vel.y = 0; grounded = true; }
-                playerCharacter.rotation.y = camAngleX;
-
-                const offset = new THREE.Vector3(Math.sin(camAngleX) * Math.cos(camAngleY) * camDist, Math.sin(camAngleY) * camDist + 3, Math.cos(camAngleX) * Math.cos(camAngleY) * camDist);
-                playerCamera.position.copy(playerCharacter.position).add(offset);
-                playerCamera.lookAt(playerCharacter.position.x, playerCharacter.position.y + 2, playerCharacter.position.z);
-            }
-
-            playerMyRef = dbB.ref(`gameSessions/${placeId}/${instanceId}/players/${currentUserId}`);
-            playerPlayersRef = dbB.ref(`gameSessions/${placeId}/${instanceId}/players`);
-            playerChatRef = dbB.ref(`gameSessions/${placeId}/${instanceId}/chatMessages`);
-
-            setInterval(() => {
-                if(currentView !== 'player') return;
-                playerMyRef.set({ userId: currentUserId, pos: { x: playerCharacter.position.x, y: playerCharacter.position.y, z: playerCharacter.position.z }, rot: playerCharacter.rotation.y, t: Date.now() });
-            }, 100);
-
-            window.playtimeInterval = setInterval(() => {
-                if(currentView !== 'player') return;
-                dbA.ref(`users/${currentUserId}/totalPlaytime`).transaction(curr => (curr || 0) + 10000);
-            }, 10000);
-
-            playerPlayersRef.on('child_added', s => {
-                if(s.key === currentUserId) return;
-                const mesh = new THREE.Mesh(new THREE.BoxGeometry(2, 4, 1), new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff }));
-                playerScene.add(mesh);
-                playerRemotePlayers[s.key] = mesh;
-            });
-            playerPlayersRef.on('child_changed', s => {
-                if(s.key === currentUserId) return;
-                const d = s.val();
-                if(playerRemotePlayers[s.key]) {
-                    playerRemotePlayers[s.key].position.set(d.pos.x, d.pos.y, d.pos.z);
-                    playerRemotePlayers[s.key].rotation.y = d.rot;
+            // Load Map from DB B if exists
+            dbB.ref(`studioProjects/${placeId}`).once('value').then(snap => {
+                if(snap.exists() && snap.val().instances) {
+                    snap.val().instances.forEach(inst => {
+                        let geom;
+                        if(inst.type === 'sphere') geom = new THREE.SphereGeometry(2);
+                        else if(inst.type === 'cylinder') geom = new THREE.CylinderGeometry(2,2,4);
+                        else geom = new THREE.BoxGeometry(4,4,4);
+                        const mat = new THREE.MeshStandardMaterial({ color: inst.color || 0x808080 });
+                        const mesh = new THREE.Mesh(geom, mat);
+                        mesh.position.set(inst.pos.x, inst.pos.y, inst.pos.z);
+                        pScene.add(mesh);
+                    });
                 }
             });
-            playerPlayersRef.on('child_removed', s => {
-                if(playerRemotePlayers[s.key]) { playerScene.remove(playerRemotePlayers[s.key]); delete playerRemotePlayers[s.key]; }
+
+            // Character Setup
+            pChar = new THREE.Group();
+            const colors = currentUser.avatar || {};
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 1), new THREE.MeshStandardMaterial({ color: colors.torsoColor || 0x0054E3 }));
+            torso.position.y = 2.5; pChar.add(torso);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), new THREE.MeshStandardMaterial({ color: colors.headColor || 0xFFE0BD }));
+            head.position.y = 4.25; pChar.add(head);
+            pScene.add(pChar);
+
+            // Controls
+            pRenderer.domElement.addEventListener('click', () => pRenderer.domElement.requestPointerLock());
+            pListeners.mouse = (e) => {
+                if (currentView !== 'player' || !document.pointerLockElement) return;
+                pCamX -= e.movementX * 0.002;
+                pCamY -= e.movementY * 0.002;
+                pCamY = Math.max(-0.5, Math.min(1.5, pCamY));
+            };
+            document.addEventListener('mousemove', pListeners.mouse);
+
+            // Networking (DB B)
+            const myRef = dbB.ref(`gameSessions/${placeId}/${instanceId}/players/${currentUserId}`);
+            const playersRef = dbB.ref(`gameSessions/${placeId}/${instanceId}/players`);
+            const chatRef = dbB.ref(`gameSessions/${placeId}/${instanceId}/chatMessages`);
+            pListeners.chat = chatRef;
+            pListeners.players = playersRef;
+            pListeners.myRef = myRef;
+
+            pIntervals.pos = setInterval(() => {
+                if(currentView !== 'player') return;
+                myRef.set({ userId: currentUserId, name: currentUser.displayName, pos: { x: pChar.position.x, y: pChar.position.y, z: pChar.position.z }, rot: pChar.rotation.y, t: Date.now() });
+            }, 100);
+
+            pIntervals.playtime = setInterval(() => {
+                if(currentView !== 'player') return;
+                dbA.ref(`users/${currentUserId}/totalPlaytime`).transaction(curr => (curr || 0) + 10000);
+                currentUser.totalPlaytime = (currentUser.totalPlaytime || 0) + 10000;
+            }, 10000);
+
+            playersRef.on('child_added', s => {
+                if(s.key === currentUserId) return;
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(2, 4, 1), new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff }));
+                pScene.add(mesh); pRemote[s.key] = mesh;
+            });
+            playersRef.on('child_changed', s => {
+                if(s.key === currentUserId) return;
+                const d = s.val();
+                if(pRemote[s.key]) {
+                    pRemote[s.key].position.set(d.pos.x, d.pos.y, d.pos.z);
+                    pRemote[s.key].rotation.y = d.rot;
+                }
+            });
+            playersRef.on('child_removed', s => {
+                if(pRemote[s.key]) { pScene.remove(pRemote[s.key]); delete pRemote[s.key]; }
             });
 
-            playerChatRef.limitToLast(10).on('child_added', s => {
+            chatRef.limitToLast(10).on('child_added', s => {
                 const d = s.val();
                 const div = document.createElement('div');
-                div.innerText = `${d.sender}: ${d.msg}`;
+                div.innerText = `${d.name || d.sender}: ${d.msg}`;
                 document.getElementById('player-chat-msgs').appendChild(div);
                 document.getElementById('player-chat-msgs').scrollTop = 99999;
             });
 
+            // Game Loop
             function animate() {
                 if(currentView !== 'player') return;
-                playerAnimationId = requestAnimationFrame(animate);
-                update();
-                playerRenderer.render(playerScene, playerCamera);
+                pAnimId = requestAnimationFrame(animate);
+                
+                // Physics & Movement
+                const speed = 0.2;
+                const fwd = new THREE.Vector3(-Math.sin(pCamX), 0, -Math.cos(pCamX));
+                const right = new THREE.Vector3(Math.cos(pCamX), 0, -Math.sin(pCamX));
+                if(pKeys['KeyW']) pChar.position.add(fwd.clone().multiplyScalar(speed));
+                if(pKeys['KeyS']) pChar.position.add(fwd.clone().multiplyScalar(-speed));
+                if(pKeys['KeyA']) pChar.position.add(right.clone().multiplyScalar(-speed));
+                if(pKeys['KeyD']) pChar.position.add(right.clone().multiplyScalar(speed));
+                if(pKeys['Space'] && pGrounded) { pVelY = 0.3; pGrounded = false; }
+                
+                pVelY -= 0.015; pChar.position.y += pVelY;
+                if(pChar.position.y <= 0) { pChar.position.y = 0; pVelY = 0; pGrounded = true; }
+                pChar.rotation.y = pCamX;
+
+                const offset = new THREE.Vector3(Math.sin(pCamX) * Math.cos(pCamY) * pDist, Math.sin(pCamY) * pDist + 3, Math.cos(pCamX) * Math.cos(pCamY) * pDist);
+                pCam.position.copy(pChar.position).add(offset);
+                pCam.lookAt(pChar.position.x, pChar.position.y + 2, pChar.position.z);
+
+                pRenderer.render(pScene, pCam);
             }
             animate();
         }
 
         function cleanupPlayer() {
-            if (playerAnimationId) cancelAnimationFrame(playerAnimationId);
-            if (window.playtimeInterval) clearInterval(window.playtimeInterval);
+            if (pAnimId) cancelAnimationFrame(pAnimId);
+            Object.values(pIntervals).forEach(clearInterval);
             if (document.pointerLockElement) document.exitPointerLock();
-            
-            if (playerMyRef) playerMyRef.remove();
-            if (playerPlayersRef) playerPlayersRef.off();
-            if (playerChatRef) playerChatRef.off();
-            
-            if (window.playerMouseMoveHandler) document.removeEventListener('mousemove', window.playerMouseMoveHandler);
-            
-            if (playerRenderer) {
-                playerRenderer.dispose();
-                playerRenderer.forceContextLoss();
+            if (pListeners.myRef) pListeners.myRef.remove();
+            if (pListeners.players) pListeners.players.off();
+            if (pListeners.chat) pListeners.chat.off();
+            if (pListeners.mouse) document.removeEventListener('mousemove', pListeners.mouse);
+            if (pRenderer) {
+                pRenderer.dispose();
                 document.getElementById('player-canvas-container').innerHTML = '';
-                playerRenderer = null;
             }
-            playerScene = null; playerCamera = null; playerRemotePlayers = {};
+            pScene = null; pCam = null; pRenderer = null; pRemote = {}; pListeners = {}; pIntervals = {};
             document.getElementById('player-chat-msgs').innerHTML = '';
         }
 
         window.handlePlayerChat = function(e) {
             if(e.code === 'Enter') {
                 const inp = document.getElementById('player-chat-input');
-                if(inp.value && playerChatRef) {
-                    playerChatRef.push({ sender: currentUser.displayName.substring(0,5), msg: inp.value, t: Date.now() });
+                if(inp.value && pListeners.chat) {
+                    pListeners.chat.push({ sender: currentUserId, name: currentUser.displayName, msg: inp.value, t: Date.now() });
                     inp.value = "";
                 }
             }
         };
 
-        document.addEventListener('keydown', e => { if(currentView === 'player') playerKeys[e.code] = true; });
-        document.addEventListener('keyup', e => { if(currentView === 'player') playerKeys[e.code] = false; });
+        document.addEventListener('keydown', e => { if(currentView === 'player') pKeys[e.code] = true; });
+        document.addEventListener('keyup', e => { if(currentView === 'player') pKeys[e.code] = false; });
 
         // ==========================================
         // 5. STUDIO MODULE (DYNAMIC LOAD)
         // ==========================================
-        let studioScene, studioCamera, studioRenderer, studioAnimationId;
-        let studioSelected = null, studioObjects = [];
-        let currentProjectId = null;
-        let camTheta = 0, camPhi = Math.PI/4, camRadius = 50;
-        let isDragging = false, prevX = 0, prevY = 0;
+        let sScene, sCam, sRenderer, sAnimId;
+        let sSelected = null, sObjects = [];
+        let sProjectId = null;
+        let sCamT = 0, sCamP = Math.PI/4, sRad = 50;
+        let sDrag = false, sPrevX = 0, sPrevY = 0;
+        let sHandlers = {};
 
         function initStudio(projectId) {
-            currentProjectId = projectId;
+            sProjectId = projectId;
             const container = document.getElementById('studio-viewport-container');
-            studioScene = new THREE.Scene();
-            studioScene.background = new THREE.Color(0x222222);
-            studioCamera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 2000);
-            studioRenderer = new THREE.WebGLRenderer({ antialias: true });
-            studioRenderer.setSize(container.clientWidth, container.clientHeight);
-            container.appendChild(studioRenderer.domElement);
+            sScene = new THREE.Scene();
+            sScene.background = new THREE.Color(0x222222);
+            sCam = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 2000);
+            sRenderer = new THREE.WebGLRenderer({ antialias: true });
+            sRenderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(sRenderer.domElement);
 
-            studioScene.add(new THREE.AmbientLight(0xffffff, 0.5));
-            const sun = new THREE.DirectionalLight(0xffffff, 0.8); sun.position.set(50, 100, 50); studioScene.add(sun);
-            studioScene.add(new THREE.GridHelper(100, 100, 0x555555, 0x333333));
+            sScene.add(new THREE.AmbientLight(0xffffff, 0.5));
+            const sun = new THREE.DirectionalLight(0xffffff, 0.8); sun.position.set(50, 100, 50); sScene.add(sun);
+            sScene.add(new THREE.GridHelper(100, 100, 0x555555, 0x333333));
 
-            const mouseDownHandler = e => { isDragging = true; prevX = e.clientX; prevY = e.clientY; };
-            const mouseUpHandler = () => isDragging = false;
-            const mouseMoveHandler = e => {
-                if (currentView !== 'studio' || !isDragging) return;
-                camTheta -= (e.clientX - prevX) * 0.01;
-                camPhi -= (e.clientY - prevY) * 0.01;
-                camPhi = Math.max(0.1, Math.min(Math.PI - 0.1, camPhi));
-                prevX = e.clientX; prevY = e.clientY;
+            sHandlers.down = e => { sDrag = true; sPrevX = e.clientX; sPrevY = e.clientY; };
+            sHandlers.up = () => sDrag = false;
+            sHandlers.move = e => {
+                if (currentView !== 'studio' || !sDrag) return;
+                sCamT -= (e.clientX - sPrevX) * 0.01;
+                sCamP -= (e.clientY - sPrevY) * 0.01;
+                sCamP = Math.max(0.1, Math.min(Math.PI - 0.1, sCamP));
+                sPrevX = e.clientX; sPrevY = e.clientY;
                 updateStudioCam();
             };
-            const wheelHandler = e => { if(currentView !== 'studio') return; camRadius += e.deltaY * 0.05; updateStudioCam(); };
-            const dblClickHandler = e => {
+            sHandlers.wheel = e => { if(currentView !== 'studio') return; sRad += e.deltaY * 0.05; updateStudioCam(); };
+            sHandlers.dbl = e => {
                 if(currentView !== 'studio') return;
-                const rect = studioRenderer.domElement.getBoundingClientRect();
+                const rect = sRenderer.domElement.getBoundingClientRect();
                 const mouse = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
-                const raycaster = new THREE.Raycaster();
-                raycaster.setFromCamera(mouse, studioCamera);
-                const hits = raycaster.intersectObjects(studioObjects);
+                const ray = new THREE.Raycaster();
+                ray.setFromCamera(mouse, sCam);
+                const hits = ray.intersectObjects(sObjects);
                 selectStudioObj(hits.length > 0 ? hits[0].object : null);
             };
 
-            studioRenderer.domElement.addEventListener('mousedown', mouseDownHandler);
-            window.addEventListener('mouseup', mouseUpHandler);
-            window.addEventListener('mousemove', mouseMoveHandler);
-            studioRenderer.domElement.addEventListener('wheel', wheelHandler);
-            studioRenderer.domElement.addEventListener('dblclick', dblClickHandler);
-
-            window.studioHandlers = { mouseDownHandler, mouseUpHandler, mouseMoveHandler, wheelHandler, dblClickHandler };
+            sRenderer.domElement.addEventListener('mousedown', sHandlers.down);
+            window.addEventListener('mouseup', sHandlers.up);
+            window.addEventListener('mousemove', sHandlers.move);
+            sRenderer.domElement.addEventListener('wheel', sHandlers.wheel);
+            sRenderer.domElement.addEventListener('dblclick', sHandlers.dbl);
 
             updateStudioCam();
             loadStudioProject();
 
             function animate() {
                 if(currentView !== 'studio') return;
-                studioAnimationId = requestAnimationFrame(animate);
-                studioRenderer.render(studioScene, studioCamera);
+                sAnimId = requestAnimationFrame(animate);
+                sRenderer.render(sScene, sCam);
             }
             animate();
         }
 
         function updateStudioCam() {
-            if(!studioCamera) return;
-            studioCamera.position.x = camRadius * Math.sin(camPhi) * Math.sin(camTheta);
-            studioCamera.position.y = camRadius * Math.cos(camPhi);
-            studioCamera.position.z = camRadius * Math.sin(camPhi) * Math.cos(camTheta);
-            studioCamera.lookAt(0,0,0);
+            if(!sCam) return;
+            sCam.position.x = sRad * Math.sin(sCamP) * Math.sin(sCamT);
+            sCam.position.y = sRad * Math.cos(sCamP);
+            sCam.position.z = sRad * Math.sin(sCamP) * Math.cos(sCamT);
+            sCam.lookAt(0,0,0);
         }
 
         function cleanupStudio() {
-            if (studioAnimationId) cancelAnimationFrame(studioAnimationId);
-            if (window.studioHandlers) {
-                studioRenderer.domElement.removeEventListener('mousedown', window.studioHandlers.mouseDownHandler);
-                window.removeEventListener('mouseup', window.studioHandlers.mouseUpHandler);
-                window.removeEventListener('mousemove', window.studioHandlers.mouseMoveHandler);
-                studioRenderer.domElement.removeEventListener('wheel', window.studioHandlers.wheelHandler);
-                studioRenderer.domElement.removeEventListener('dblclick', window.studioHandlers.dblClickHandler);
-            }
-            if (studioRenderer) {
-                studioRenderer.dispose();
-                studioRenderer.forceContextLoss();
+            if (sAnimId) cancelAnimationFrame(sAnimId);
+            if (sRenderer) {
+                sRenderer.domElement.removeEventListener('mousedown', sHandlers.down);
+                window.removeEventListener('mouseup', sHandlers.up);
+                window.removeEventListener('mousemove', sHandlers.move);
+                sRenderer.domElement.removeEventListener('wheel', sHandlers.wheel);
+                sRenderer.domElement.removeEventListener('dblclick', sHandlers.dbl);
+                sRenderer.dispose();
                 document.getElementById('studio-viewport-container').innerHTML = '';
-                studioRenderer = null;
             }
-            studioScene = null; studioCamera = null; studioObjects = []; studioSelected = null;
-            document.getElementById('studio-explorer-list').innerHTML = '';
-            document.getElementById('studio-props').innerHTML = 'Select an object';
+            sScene = null; sCam = null; sRenderer = null; sObjects = []; sSelected = null;
         }
 
         window.addStudioPart = function(type) {
@@ -631,25 +697,25 @@
             const mat = new THREE.MeshStandardMaterial({ color: type==='spawn' ? 0x00ff00 : 0x808080 });
             const mesh = new THREE.Mesh(geom, mat);
             mesh.position.y = 2;
-            mesh.userData = { type: type, name: type + "_" + studioObjects.length };
-            studioScene.add(mesh);
-            studioObjects.push(mesh);
+            mesh.userData = { type: type, name: type + "_" + sObjects.length };
+            sScene.add(mesh);
+            sObjects.push(mesh);
             selectStudioObj(mesh);
         };
 
         function selectStudioObj(obj) {
-            if(studioSelected) studioSelected.material.emissive.setHex(0x000000);
-            studioSelected = obj;
-            if(studioSelected) studioSelected.material.emissive.setHex(0x333333);
+            if(sSelected) sSelected.material.emissive.setHex(0x000000);
+            sSelected = obj;
+            if(sSelected) sSelected.material.emissive.setHex(0x333333);
             renderStudioExplorer(); renderStudioProps();
         }
 
         function renderStudioExplorer() {
             const list = document.getElementById('studio-explorer-list');
             list.innerHTML = '';
-            studioObjects.forEach(o => {
+            sObjects.forEach(o => {
                 const div = document.createElement('div');
-                div.className = 'exp-item' + (o===studioSelected ? ' sel' : '');
+                div.className = 'exp-item' + (o===sSelected ? ' sel' : '');
                 div.innerText = o.userData.name;
                 div.onclick = () => selectStudioObj(o);
                 list.appendChild(div);
@@ -658,37 +724,37 @@
 
         function renderStudioProps() {
             const p = document.getElementById('studio-props');
-            if(!studioSelected) { p.innerHTML = "Select an object"; return; }
+            if(!sSelected) { p.innerHTML = "Select an object"; return; }
             p.innerHTML = `
                 <label>Name</label>
-                <input type="text" value="${studioSelected.userData.name}" onchange="studioSelected.userData.name=this.value; renderStudioExplorer();">
+                <input type="text" value="${sSelected.userData.name}" onchange="sSelected.userData.name=this.value; renderStudioExplorer();">
                 <label>Position X</label>
-                <input type="number" step="0.1" value="${studioSelected.position.x.toFixed(1)}" onchange="studioSelected.position.x=parseFloat(this.value)">
+                <input type="number" step="0.1" value="${sSelected.position.x.toFixed(1)}" onchange="sSelected.position.x=parseFloat(this.value)">
                 <label>Position Y</label>
-                <input type="number" step="0.1" value="${studioSelected.position.y.toFixed(1)}" onchange="studioSelected.position.y=parseFloat(this.value)">
+                <input type="number" step="0.1" value="${sSelected.position.y.toFixed(1)}" onchange="sSelected.position.y=parseFloat(this.value)">
                 <label>Position Z</label>
-                <input type="number" step="0.1" value="${studioSelected.position.z.toFixed(1)}" onchange="studioSelected.position.z=parseFloat(this.value)">
+                <input type="number" step="0.1" value="${sSelected.position.z.toFixed(1)}" onchange="sSelected.position.z=parseFloat(this.value)">
                 <label>Color</label>
-                <input type="color" value="#${studioSelected.material.color.getHexString()}" onchange="studioSelected.material.color.setStyle(this.value)">
+                <input type="color" value="#${sSelected.material.color.getHexString()}" onchange="sSelected.material.color.setStyle(this.value)">
                 <button class="btn btn-red" style="width:100%; margin-top:10px;" onclick="deleteStudioObj()">Delete</button>
             `;
         }
 
         window.deleteStudioObj = function() {
-            if(!studioSelected) return;
-            studioScene.remove(studioSelected);
-            studioObjects.splice(studioObjects.indexOf(studioSelected), 1);
+            if(!sSelected) return;
+            sScene.remove(sSelected);
+            sObjects.splice(sObjects.indexOf(sSelected), 1);
             selectStudioObj(null);
         };
 
         window.saveProject = async function() {
             document.getElementById('studio-status').innerText = "Saving...";
-            const data = studioObjects.map(o => ({
+            const data = sObjects.map(o => ({
                 name: o.userData.name, type: o.userData.type,
                 pos: { x:o.position.x, y:o.position.y, z:o.position.z },
                 color: "#" + o.material.color.getHexString()
             }));
-            await dbB.ref(`studioProjects/${currentProjectId}`).set({
+            await dbB.ref(`studioProjects/${sProjectId}`).set({
                 creatorId: currentUserId, creatorName: currentUser.displayName, name: "My Project",
                 updatedAt: Date.now(), instances: data
             });
@@ -700,32 +766,34 @@
             document.getElementById('studio-status').innerText = "Publishing...";
             const name = prompt("Game Name:", "My Awesome Game");
             if(!name) return;
-            const placeId = "place_" + Date.now();
+            
+            // We use the projectId as the placeId so the player knows which map to load
+            const placeId = sProjectId; 
+            
             await dbA.ref(`games/${placeId}`).set({
                 name: name, creatorId: currentUserId, creatorName: currentUser.displayName,
                 isActive: true, stats: { playing: 0, visits: 0 },
-                projectId: currentProjectId, createdAt: Date.now()
+                projectId: sProjectId, createdAt: Date.now()
             });
-            alert(`Published! ID: ${placeId}`);
+            alert(`Published! Go to Home to play it.`);
             document.getElementById('studio-status').innerText = "Published!";
         };
 
         async function loadStudioProject() {
-            const snap = await dbB.ref(`studioProjects/${currentProjectId}`).once('value');
-            if(snap.exists()) {
-                const data = snap.val().instances || [];
-                data.forEach(inst => {
+            const snap = await dbB.ref(`studioProjects/${sProjectId}`).once('value');
+            if(snap.exists() && snap.val().instances) {
+                snap.val().instances.forEach(inst => {
                     let geom;
-                    if(inst.type==='block') geom = new THREE.BoxGeometry(4,4,4);
-                    else if(inst.type==='sphere') geom = new THREE.SphereGeometry(2);
+                    if(inst.type==='sphere') geom = new THREE.SphereGeometry(2);
                     else if(inst.type==='cylinder') geom = new THREE.CylinderGeometry(2,2,4);
-                    else geom = new THREE.BoxGeometry(6,1,6);
+                    else geom = new THREE.BoxGeometry(4,4,4);
+                    
                     const mat = new THREE.MeshStandardMaterial({ color: inst.color });
                     const mesh = new THREE.Mesh(geom, mat);
                     mesh.position.set(inst.pos.x, inst.pos.y, inst.pos.z);
                     mesh.userData = { type: inst.type, name: inst.name };
-                    studioScene.add(mesh);
-                    studioObjects.push(mesh);
+                    sScene.add(mesh);
+                    sObjects.push(mesh);
                 });
                 renderStudioExplorer();
             }
