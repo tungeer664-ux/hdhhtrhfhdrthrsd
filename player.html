@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Roblox Player</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: Arial; background: #000; }
+        #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        #chat { position: absolute; top: 10px; left: 10px; width: 300px; height: 200px; background: rgba(0,0,0,0.6); color: white; padding: 10px; border-radius: 5px; pointer-events: auto; display: flex; flex-direction: column; }
+        #chat-msgs { flex: 1; overflow-y: auto; font-size: 14px; }
+        #chat-input { width: 100%; background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px; margin-top: 5px; pointer-events: auto; }
+        #info { position: absolute; top: 10px; right: 10px; color: white; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 5px; font-size: 12px; }
+        #crosshair { position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; background: white; border-radius: 50%; transform: translate(-50%, -50%); }
+    </style>
+</head>
+<body>
+    <div id="hud">
+        <div id="chat">
+            <div id="chat-msgs"></div>
+            <input type="text" id="chat-input" placeholder="Press Enter to chat..." onkeydown="handleChat(event)">
+        </div>
+        <div id="info">Loading...</div>
+        <div id="crosshair"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // 1. Parse URL Params
+        const urlParams = new URLSearchParams(window.location.search);
+        const placeId = urlParams.get('placeId');
+        const instanceId = urlParams.get('instanceId');
+        const userId = urlParams.get('userId');
+
+        if(!userId) document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:50px;'>Error: No User ID provided.</h1>";
+
+        // 2. Initialize Firebase (Both Databases)
+        const appA = firebase.initializeApp({ databaseURL: "https://roblox-bd310-default-rtdb.firebaseio.com/" }, "A");
+        const appB = firebase.initializeApp({ databaseURL: "https://roblox-everything-else-default-rtdb.firebaseio.com/" }, "B");
+        const dbA = appA.database();
+        const dbB = appB.database();
+
+        // 3. Three.js Setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB); // Sky Blue
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // Lighting
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+        sun.position.set(50, 100, 50);
+        sun.castShadow = true;
+        scene.add(sun);
+
+        // Baseplate
+        const base = new THREE.Mesh(new THREE.BoxGeometry(500, 1, 500), new THREE.MeshStandardMaterial({ color: 0x228B22 }));
+        base.position.y = -0.5;
+        base.receiveShadow = true;
+        scene.add(base);
+
+        // Player Character
+        const player = new THREE.Group();
+        const torso = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 1), new THREE.MeshStandardMaterial({ color: 0x0054E3 }));
+        torso.position.y = 2.5; torso.castShadow = true;
+        player.add(torso);
+        const head = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), new THREE.MeshStandardMaterial({ color: 0xFFE0BD }));
+        head.position.y = 4.25; head.castShadow = true;
+        player.add(head);
+        scene.add(player);
+
+        // Controls
+        let camAngleX = 0, camAngleY = 0.5, camDist = 15;
+        let isLocked = false;
+        renderer.domElement.addEventListener('click', () => renderer.domElement.requestPointerLock());
+        document.addEventListener('pointerlockchange', () => isLocked = document.pointerLockElement === renderer.domElement);
+        document.addEventListener('mousemove', (e) => {
+            if(!isLocked) return;
+            camAngleX -= e.movementX * 0.002;
+            camAngleY -= e.movementY * 0.002;
+            camAngleY = Math.max(-0.5, Math.min(1.5, camAngleY));
+        });
+
+        const keys = {};
+        document.addEventListener('keydown', e => keys[e.code] = true);
+        document.addEventListener('keyup', e => keys[e.code] = false);
+
+        const vel = new THREE.Vector3();
+        let grounded = true;
+
+        // 4. Game Loop
+        function update() {
+            // Movement
+            const speed = 0.2;
+            const fwd = new THREE.Vector3(-Math.sin(camAngleX), 0, -Math.cos(camAngleX));
+            const right = new THREE.Vector3(Math.cos(camAngleX), 0, -Math.sin(camAngleX));
+
+            if(keys['KeyW']) player.position.add(fwd.clone().multiplyScalar(speed));
+            if(keys['KeyS']) player.position.add(fwd.clone().multiplyScalar(-speed));
+            if(keys['KeyA']) player.position.add(right.clone().multiplyScalar(-speed));
+            if(keys['KeyD']) player.position.add(right.clone().multiplyScalar(speed));
+
+            if(keys['Space'] && grounded) { vel.y = 0.3; grounded = false; }
+            vel.y -= 0.015; // Gravity
+            player.position.y += vel.y;
+            if(player.position.y <= 0) { player.position.y = 0; vel.y = 0; grounded = true; }
+
+            player.rotation.y = camAngleX;
+
+            // Camera Follow
+            const offset = new THREE.Vector3(
+                Math.sin(camAngleX) * Math.cos(camAngleY) * camDist,
+                Math.sin(camAngleY) * camDist + 3,
+                Math.cos(camAngleX) * Math.cos(camAngleY) * camDist
+            );
+            camera.position.copy(player.position).add(offset);
+            camera.lookAt(player.position.x, player.position.y + 2, player.position.z);
+        }
+
+        // 5. Networking (Firebase)
+        const myRef = dbB.ref(`gameSessions/${placeId}/${instanceId}/players/${userId}`);
+        const playersRef = dbB.ref(`gameSessions/${placeId}/${instanceId}/players`);
+        const chatRef = dbB.ref(`gameSessions/${placeId}/${instanceId}/chatMessages`);
+        const remotePlayers = {};
+
+        // Send Position (60Hz target -> every 100ms for stability)
+        setInterval(() => {
+            myRef.set({
+                userId: userId,
+                pos: { x: player.position.x, y: player.position.y, z: player.position.z },
+                rot: player.rotation.y,
+                t: Date.now()
+            });
+        }, 100);
+
+        // Track Playtime (Every 10s -> DB A)
+        setInterval(() => {
+            dbA.ref(`users/${userId}/totalPlaytime`).transaction(curr => (curr || 0) + 10000);
+        }, 10000);
+
+        // Listen for Others
+        playersRef.on('child_added', s => {
+            if(s.key === userId) return;
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(2, 4, 1), new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff }));
+            scene.add(mesh);
+            remotePlayers[s.key] = mesh;
+        });
+
+        playersRef.on('child_changed', s => {
+            if(s.key === userId) return;
+            const d = s.val();
+            if(remotePlayers[s.key]) {
+                // Interpolation logic could go here for smoothness
+                remotePlayers[s.key].position.set(d.pos.x, d.pos.y, d.pos.z);
+                remotePlayers[s.key].rotation.y = d.rot;
+            }
+        });
+
+        playersRef.on('child_removed', s => {
+            if(remotePlayers[s.key]) { scene.remove(remotePlayers[s.key]); delete remotePlayers[s.key]; }
+        });
+
+        window.addEventListener('beforeunload', () => myRef.remove());
+
+        // Chat
+        window.handleChat = function(e) {
+            if(e.code === 'Enter') {
+                const inp = document.getElementById('chat-input');
+                if(inp.value) {
+                    chatRef.push({ sender: userId.substring(0,5), msg: inp.value, t: Date.now() });
+                    inp.value = "";
+                }
+            }
+        };
+
+        chatRef.limitToLast(10).on('child_added', s => {
+            const d = s.val();
+            const div = document.createElement('div');
+            div.innerText = `${d.sender}: ${d.msg}`;
+            document.getElementById('chat-msgs').appendChild(div);
+            document.getElementById('chat-msgs').scrollTop = 99999;
+        });
+
+        document.getElementById('info').innerText = `Game: ${placeId} | Instance: ${instanceId}`;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
