@@ -6,16 +6,13 @@
     <title>Roblox Portal</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f3f3f3; color: #333; }
-        /* Top Bar */
         #topbar { background: #232527; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%; top: 0; z-index: 100; box-sizing: border-box; height: 50px; }
         #topbar .logo { font-size: 24px; font-weight: bold; color: white; text-decoration: none; }
         #topbar .nav-right { display: flex; align-items: center; gap: 15px; }
         .robux-display { color: #00b06f; font-weight: bold; font-size: 18px; }
-        /* Sidebar */
         #sidebar { width: 220px; background: #232527; height: calc(100vh - 50px); position: fixed; top: 50px; left: 0; padding-top: 10px; overflow-y: auto; }
         .nav-item { padding: 15px 20px; color: #b8b8b8; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 16px; border-left: 4px solid transparent; }
         .nav-item:hover, .nav-item.active { background: #393b3d; color: white; border-left: 4px solid #00a2ff; }
-        /* Content */
         #content { margin-left: 220px; margin-top: 50px; padding: 20px; min-height: calc(100vh - 50px); }
         .page { display: none; }
         .page.active { display: block; }
@@ -26,13 +23,10 @@
         .btn-red { background: #e34c4c; color: white; }
         .btn:hover { opacity: 0.9; transform: translateY(-1px); }
         input, select { padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 14px; }
-        /* Hammer Button */
         #hammer-btn { position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: #f5cd35; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 35px; z-index: 1000; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s; }
         #hammer-btn:hover { transform: scale(1.1) rotate(15deg); }
-        /* Auth Modal */
         #auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 2000; }
         .modal-box { background: white; padding: 40px; border-radius: 12px; width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        /* Grid */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
         .game-card { background: white; border-radius: 8px; overflow: hidden; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .game-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
@@ -46,7 +40,6 @@
 </head>
 <body>
 
-    <!-- Auth Modal -->
     <div id="auth-modal">
         <div class="modal-box">
             <h2 style="margin-top:0;">Welcome to Roblox</h2>
@@ -58,7 +51,6 @@
         </div>
     </div>
 
-    <!-- Top Bar -->
     <div id="topbar">
         <a href="#" class="logo" onclick="showPage('home')">ROBLOX</a>
         <div class="nav-right">
@@ -69,7 +61,6 @@
         </div>
     </div>
 
-    <!-- Sidebar -->
     <div id="sidebar">
         <div class="nav-item active" onclick="showPage('home')">🏠 Home</div>
         <div class="nav-item" onclick="showPage('games')">🎮 Games</div>
@@ -78,28 +69,20 @@
         <div class="nav-item" id="nav-admin" style="display:none;" onclick="showPage('admin')">🛡️ Admin Panel</div>
     </div>
 
-    <!-- Main Content -->
     <div id="content">
-        <!-- Home Page -->
         <div id="page-home" class="page active">
             <h2>Featured Games</h2>
             <div class="grid" id="grid-home"></div>
         </div>
-
-        <!-- Games Page -->
         <div id="page-games" class="page">
             <h2>All Games</h2>
             <button class="btn btn-green" onclick="createGame()">+ Create New Game</button>
             <div class="grid" id="grid-games" style="margin-top:20px;"></div>
         </div>
-
-        <!-- Catalog Page -->
         <div id="page-catalog" class="page">
             <h2>Catalog</h2>
             <div class="grid" id="grid-catalog"></div>
         </div>
-
-        <!-- Avatar Page -->
         <div id="page-avatar" class="page">
             <h2>Avatar Editor</h2>
             <div class="card">
@@ -110,8 +93,6 @@
                 <input type="color" id="col-head" value="#FFE0BD" onchange="updateAvatar('headColor', this.value)">
             </div>
         </div>
-
-        <!-- Admin Page -->
         <div id="page-admin" class="page">
             <h2>Admin Panel</h2>
             <div class="card">
@@ -131,25 +112,20 @@
         </div>
     </div>
 
-    <!-- Hammer Button -->
     <button id="hammer-btn" onclick="openStudio()" title="Open Studio">🔨</button>
 
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // 1. Initialize Firebase (Database A)
         const firebaseConfig = { databaseURL: "https://roblox-bd310-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 2. Global State
         let currentUser = null;
         let currentUserId = null;
         let verificationTimer = null;
 
-        // 3. Authentication Logic
         window.handleAuth = async function() {
             const username = document.getElementById('auth-user').value.trim();
             const password = document.getElementById('auth-pass').value;
@@ -159,11 +135,9 @@
             if(!username || !password) { err.innerText = "Fill all fields"; return; }
 
             try {
-                // Check if user exists
                 const snap = await db.ref('users').orderByChild('displayName').equalTo(username).once('value');
                 
                 if (snap.exists()) {
-                    // Login
                     let foundId = null; let data = null;
                     snap.forEach(c => {
                         if(c.val().password === password) { foundId = c.key; data = c.val(); }
@@ -173,7 +147,6 @@
                         await enterApp();
                     } else { err.innerText = "Incorrect password"; }
                 } else {
-                    // Register
                     currentUserId = "user_" + Date.now();
                     const newUser = {
                         displayName: username, password: password, role: "user",
@@ -191,7 +164,6 @@
         async function enterApp() {
             document.getElementById('auth-modal').style.display = 'none';
             
-            // SPECIAL CASE: testing44 gets all badges
             if (currentUser.displayName === "testing44") {
                 await db.ref(`users/${currentUserId}`).update({ role: "admin", isPremium: true, isVerified: true, robuxBalance: 100000 });
                 currentUser.role = "admin"; currentUser.isPremium = true; currentUser.isVerified = true; currentUser.robuxBalance = 100000;
@@ -222,44 +194,43 @@
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(`page-${id}`).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            if(event && event.currentTarget) event.currentTarget.classList.add('active');
         };
 
-        // 4. Navigation (Specific URLs)
+        // ==========================================
+        // NAVIGATION (FIXED FOR GOOGLE SITES IFRAMES)
+        // ==========================================
         window.openStudio = function() {
-            // Link to your specific Google Sites Studio Page
             const url = `https://sites.google.com/view/rblxstudio/home?userId=${currentUserId}&username=${encodeURIComponent(currentUser.displayName)}`;
-            window.location.href = url;
+            // window.top breaks out of the Google Sites iframe to prevent 403 errors
+            window.top.location.href = url; 
         };
 
         window.playGame = function(placeId) {
-            // Link to your specific Google Sites Player Page
             const instId = "inst_" + Math.random().toString(36).substr(2, 9);
             const url = `https://sites.google.com/view/ingamerblx/home?placeId=${placeId}&instanceId=${instId}&userId=${currentUserId}`;
-            window.location.href = url;
+            // window.top breaks out of the Google Sites iframe to prevent 403 errors
+            window.top.location.href = url; 
         };
+        // ==========================================
 
-        // 5. Verification Logic (30-Min Interval)
         function startVerificationLoop() {
-            checkVerification(); // Check immediately
-            verificationTimer = setInterval(checkVerification, 30 * 60 * 1000); // Then every 30 mins
+            checkVerification();
+            verificationTimer = setInterval(checkVerification, 30 * 60 * 1000);
         }
 
         async function checkVerification() {
             if (!currentUser || currentUser.isVerified) return;
             let qualified = false;
 
-            // Criterion 1: 24 Hours Playtime (86,400,000 ms)
             if (currentUser.totalPlaytime >= 86400000) qualified = true;
 
-            // Criterion 2: 100 Sales in past 32 days
             if (!qualified) {
                 const assetsSnap = await db.ref('economy/assets').orderByChild('creatorId').equalTo(currentUserId).once('value');
                 if (assetsSnap.exists()) {
                     const thirtyTwoDaysAgo = Date.now() - (32 * 24 * 60 * 60 * 1000);
                     assetsSnap.forEach(c => {
                         const item = c.val();
-                        // Check if item was created recently and has sales
                         if (item.createdAt >= thirtyTwoDaysAgo && item.copiesSold >= 100) qualified = true;
                     });
                 }
@@ -273,7 +244,6 @@
             }
         }
 
-        // 6. Data Loading
         async function loadGames() {
             const snap = await db.ref('games').once('value');
             const html = snap.exists() ? '' : '<p>No games available yet.</p>';
@@ -307,7 +277,6 @@
             document.getElementById('grid-catalog').innerHTML = grid;
         }
 
-        // 7. Economy Actions
         window.buyItem = async function(id, price) {
             if (currentUser.robuxBalance < price) return alert("Insufficient Robux. Ask an Admin for more!");
             await db.ref(`users/${currentUserId}/robuxBalance`).set(currentUser.robuxBalance - price);
@@ -333,7 +302,6 @@
             db.ref(`users/${currentUserId}/avatar/${part}`).set(color);
         };
 
-        // 8. Admin Actions
         window.adminGiveRobux = async function() {
             if (currentUser.role !== 'admin') return alert("Access Denied.");
             const target = document.getElementById('adm-target').value.trim();
