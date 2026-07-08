@@ -1,174 +1,204 @@
-    <script>
-        // CORRECT FIREBASE INITIALIZATION
-        const firebaseConfigA = { databaseURL: "https://roblox-bd310-default-rtdb.firebaseio.com/" };
-        firebase.initializeApp(firebaseConfigA); // Initialize as default app
-        const dbA = firebase.database();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox Clone</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #f2f4f7; color: #333; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; align-items: center; justify-content: center; z-index: 9999; font-size: 24px; color: #00a2ff; }
+        #error-message { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #ff4444; color: white; padding: 20px; border-radius: 8px; display: none; z-index: 10000; max-width: 400px; text-align: center; }
+        #topbar { background: #232527; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%; top: 0; z-index: 100; box-sizing: border-box; }
+        #sidebar { width: 200px; background: #232527; height: 100vh; position: fixed; top: 50px; left: 0; padding-top: 20px; }
+        .nav-item { padding: 15px 20px; color: #b8b8b8; cursor: pointer; }
+        .nav-item:hover, .nav-item.active { background: #393b3d; color: white; }
+        #content { margin-left: 200px; margin-top: 50px; padding: 20px; }
+        .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-primary { background: #00a2ff; color: white; }
+        .btn-green { background: #00b06f; color: white; }
+        .btn-red { background: #e34c4c; color: white; }
+        input { padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
+        #hammer-btn { position: fixed; bottom: 20px; left: 20px; width: 60px; height: 60px; background: #f5cd35; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 30px; z-index: 1000; border: none; }
+        #auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal-content { background: white; padding: 30px; border-radius: 10px; width: 300px; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .game-card { background: white; border-radius: 8px; overflow: hidden; cursor: pointer; }
+        .game-thumb { width: 100%; height: 120px; background: #ddd; display: flex; align-items: center; justify-content: center; }
+        .game-info { padding: 10px; }
+        .robux-display { color: #00b06f; font-weight: bold; }
+    </style>
+</head>
+<body>
 
+    <div id="loading">Loading Roblox Clone...</div>
+    <div id="error-message"></div>
+
+    <div id="auth-modal">
+        <div class="modal-content">
+            <h2>Welcome to Roblox</h2>
+            <input type="text" id="auth-username" placeholder="Username">
+            <input type="password" id="auth-password" placeholder="Password">
+            <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="handleLogin()">Login / Register</button>
+            <p id="auth-error" style="color:red; margin-top:10px;"></p>
+        </div>
+    </div>
+
+    <div id="topbar">
+        <div style="font-size: 24px; font-weight: bold;">ROBLOX</div>
+        <div>
+            <span class="robux-display" id="robux-count">0 R$</span>
+            <span id="user-display" style="margin-left: 20px;"></span>
+            <button class="btn btn-red" style="margin-left: 10px; padding: 5px 10px;" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div id="sidebar">
+        <div class="nav-item active" onclick="showPage('home')">🏠 Home</div>
+        <div class="nav-item" onclick="showPage('games')">🎮 Games</div>
+        <div class="nav-item" onclick="showPage('catalog')">🛒 Catalog</div>
+        <div class="nav-item" onclick="showPage('avatar')">👤 Avatar</div>
+        <div class="nav-item" id="admin-nav" style="display:none;" onclick="showPage('admin')">🛡️ Admin Panel</div>
+    </div>
+
+    <div id="content">
+        <div id="page-home" class="page"><h2>Featured Games</h2><div class="grid" id="games-grid"></div></div>
+        <div id="page-games" class="page" style="display:none;">
+            <h2>All Games</h2>
+            <button class="btn btn-green" onclick="createNewGame()">+ Create New Game</button>
+            <div class="grid" id="all-games-grid" style="margin-top:20px;"></div>
+        </div>
+        <div id="page-catalog" class="page" style="display:none;"><h2>Catalog</h2><div class="grid" id="catalog-grid"></div></div>
+        <div id="page-avatar" class="page" style="display:none;">
+            <h2>Avatar Editor</h2>
+            <div class="card">
+                <p>Change your avatar color:</p>
+                <input type="color" id="avatar-color" value="#0054E3" onchange="updateAvatarColor()">
+            </div>
+        </div>
+        <div id="page-admin" class="page" style="display:none;">
+            <h2>Admin Panel</h2>
+            <div class="card">
+                <h3>Distribute Robux</h3>
+                <input type="text" id="admin-target" placeholder="Target Username">
+                <input type="number" id="admin-amount" placeholder="Amount">
+                <button class="btn btn-green" onclick="adminGiveRobux()">Give Robux</button>
+            </div>
+            <div class="card">
+                <h3>Manage Badges</h3>
+                <input type="text" id="badge-target" placeholder="Target Username">
+                <button class="btn btn-primary" onclick="adminToggleBadge('isPremium')">Toggle Premium</button>
+                <button class="btn btn-primary" onclick="adminToggleBadge('isVerified')">Toggle Verified</button>
+            </div>
+        </div>
+    </div>
+
+    <button id="hammer-btn" onclick="goToStudio()" title="Open Studio">🔨</button>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script>
+        // 1. Global Variables
+        let dbA = null;
         let currentUserId = null;
         let currentUserData = null;
 
-        // AUTH LOGIC (Uses RTDB directly to avoid iframe Auth issues)
-        async function handleLogin() {
+        // 2. Helper Functions
+        function showError(msg) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error-message').style.display = 'block';
+            document.getElementById('error-message').innerText = msg;
+        }
+
+        // 3. Initialize Firebase safely
+        function initApp() {
+            if (typeof firebase === 'undefined') {
+                showError('Firebase SDK failed to load. Check internet connection.');
+                return;
+            }
+            try {
+                const config = { databaseURL: "https://roblox-bd310-default-rtdb.firebaseio.com/" };
+                firebase.initializeApp(config);
+                dbA = firebase.database();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('auth-modal').style.display = 'flex';
+            } catch (e) {
+                showError('Firebase Error: ' + e.message);
+            }
+        }
+
+        // 4. Interactive Functions (Attached to window object)
+        window.handleLogin = async function() {
+            if (!dbA) return alert("System not ready. Please refresh.");
             const username = document.getElementById('auth-username').value.trim();
             const password = document.getElementById('auth-password').value;
             const errEl = document.getElementById('auth-error');
             errEl.innerText = "";
 
-            if (!username || !password) { 
-                errEl.innerText = "Please fill in all fields"; 
-                return; 
-            }
+            if (!username || !password) { errEl.innerText = "Fill all fields"; return; }
 
             try {
-                // Check if user exists by displayName
                 const snap = await dbA.ref('users').orderByChild('displayName').equalTo(username).once('value');
-                
                 if (snap.exists()) {
-                    // User exists, verify password
-                    let foundId = null;
-                    let userData = null;
+                    let foundId = null, userData = null;
                     snap.forEach(child => {
-                        if (child.val().password === password) {
-                            foundId = child.key;
-                            userData = child.val();
-                        }
+                        if (child.val().password === password) { foundId = child.key; userData = child.val(); }
                     });
-                    
                     if (foundId) {
                         currentUserId = foundId;
                         currentUserData = userData;
                         await loadUserData();
                         document.getElementById('auth-modal').style.display = 'none';
-                    } else {
-                        errEl.innerText = "Incorrect password";
-                    }
+                    } else { errEl.innerText = "Wrong password"; }
                 } else {
-                    // Register new user
-                    currentUserId = "user_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+                    currentUserId = "user_" + Date.now();
                     await dbA.ref(`users/${currentUserId}`).set({
-                        displayName: username,
-                        password: password, 
-                        role: "user",
-                        robuxBalance: 0,
-                        totalPlaytime: 0,
-                        isPremium: false,
-                        isVerified: false,
-                        avatar: { headColor: "#FFE0BD", torsoColor: "#0054E3" },
-                        inventory: { hats: [], faces: [], shirts: [], pants: [] }
+                        displayName: username, password: password, role: "user", robuxBalance: 0,
+                        totalPlaytime: 0, isPremium: false, isVerified: false,
+                        avatar: { headColor: "#FFE0BD", torsoColor: "#0054E3" }
                     });
                     await loadUserData();
                     document.getElementById('auth-modal').style.display = 'none';
                 }
-            } catch (e) {
-                errEl.innerText = "Error: " + e.message;
-                console.error("Login error:", e);
-            }
-        }
+            } catch (e) { errEl.innerText = "Error: " + e.message; }
+        };
+
+        window.logout = function() { location.reload(); };
 
         async function loadUserData() {
             const snap = await dbA.ref(`users/${currentUserId}`).once('value');
             currentUserData = snap.val();
-            
-            // SPECIAL USER LOGIC: testing44 gets all badges
             if (currentUserData.displayName === "testing44") {
-                await dbA.ref(`users/${currentUserId}`).update({
-                    role: "admin", isPremium: true, isVerified: true, robuxBalance: 100000
-                });
-                currentUserData.role = "admin"; 
-                currentUserData.isPremium = true; 
-                currentUserData.isVerified = true;
-                currentUserData.robuxBalance = 100000;
+                await dbA.ref(`users/${currentUserId}`).update({ role: "admin", isPremium: true, isVerified: true, robuxBalance: 100000 });
+                currentUserData.role = "admin"; currentUserData.isPremium = true; currentUserData.isVerified = true; currentUserData.robuxBalance = 100000;
             }
-
             document.getElementById('user-display').innerText = currentUserData.displayName;
             document.getElementById('robux-count').innerText = currentUserData.robuxBalance + " R$";
-            if (currentUserData.role === "admin") {
-                document.getElementById('admin-nav').style.display = 'flex';
-            }
-
-            startVerificationListener();
-            loadGames();
-            loadCatalog();
+            if (currentUserData.role === "admin") document.getElementById('admin-nav').style.display = 'flex';
+            loadGames(); loadCatalog();
         }
 
-        function logout() {
-            currentUserId = null;
-            currentUserData = null;
-            location.reload();
-        }
-
-        // Verification Check (Runs every 30 mins)
-        function startVerificationListener() {
-            checkVerification();
-            setInterval(checkVerification, 30 * 60 * 1000); // 30 minutes
-        }
-
-        async function checkVerification() {
-            if (!currentUserData || currentUserData.isVerified) return;
-            let qualifies = false;
-
-            // 1. 24 Hours Playtime (86400000 ms)
-            if (currentUserData.totalPlaytime >= 86400000) qualifies = true;
-
-            // 2. 100 Sales in 32 Days
-            if (!qualifies) {
-                const assetsSnap = await dbA.ref('economy/assets').orderByChild('creatorId').equalTo(currentUserId).once('value');
-                if (assetsSnap.exists()) {
-                    assetsSnap.forEach(child => {
-                        if (child.val().copiesSold >= 100) qualifies = true;
-                    });
-                }
-            }
-
-            if (qualifies) {
-                await dbA.ref(`users/${currentUserId}`).update({ isVerified: true });
-                currentUserData.isVerified = true;
-                alert("Congratulations! You earned the Verified Badge!");
-            }
-        }
-
-        // Navigation
-        function showPage(page) {
+        window.showPage = function(page) {
             document.querySelectorAll('.page').forEach(el => el.style.display = 'none');
             document.getElementById(`page-${page}`).style.display = 'block';
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            if(event && event.currentTarget) event.currentTarget.classList.add('active');
-        }
+        };
 
-        function goToStudio() {
-            window.location.href = `https://sites.google.com/view/rblxstudio/home?userId=${currentUserId}`;
-        }
+        window.goToStudio = function() { window.location.href = `https://tungeer664-ux.github.io/hdhhtrhfhdrthrsd/studio.html?userId=${currentUserId}`; };
+        window.playGame = function(placeId) { window.location.href = `https://tungeer664-ux.github.io/hdhhtrhfhdrthrsd/player.html?placeId=${placeId}&userId=${currentUserId}`; };
 
-        function playGame(placeId) {
-            const instanceId = "inst_" + Math.random().toString(36).substr(2, 9);
-            window.location.href = `https://sites.google.com/view/ingamerblx/home?placeId=${placeId}&instanceId=${instanceId}&userId=${currentUserId}`;
-        }
-
-        // Data Loading
         async function loadGames() {
             const snap = await dbA.ref('games').once('value');
             const grid = document.getElementById('games-grid');
-            const allGrid = document.getElementById('all-games-grid');
-            grid.innerHTML = ''; allGrid.innerHTML = '';
-
+            grid.innerHTML = '';
             if (snap.exists()) {
                 snap.forEach(child => {
-                    const game = child.val();
-                    const card = `
-                        <div class="game-card" onclick="playGame('${child.key}')">
-                            <div class="game-thumb">${game.name}</div>
-                            <div class="game-info">
-                                <b>${game.name}</b><br>
-                                <small>By ${game.creatorName || "Unknown"}</small><br>
-                                <span style="color:green;">▶ ${game.stats?.playing || 0}</span>
-                            </div>
-                        </div>`;
-                    grid.innerHTML += card;
-                    allGrid.innerHTML += card;
+                    const g = child.val();
+                    grid.innerHTML += `<div class="game-card" onclick="playGame('${child.key}')"><div class="game-thumb">${g.name}</div><div class="game-info"><b>${g.name}</b><br><small>By ${g.creatorName||'?'}</small></div></div>`;
                 });
-            } else {
-                grid.innerHTML = "<p>No games yet. Create one in the Studio!</p>";
-            }
+            } else { grid.innerHTML = "<p>No games yet.</p>"; }
         }
 
         async function loadCatalog() {
@@ -177,89 +207,59 @@
             grid.innerHTML = '';
             if (snap.exists()) {
                 snap.forEach(child => {
-                    const item = child.val();
-                    grid.innerHTML += `
-                        <div class="card">
-                            <b>${item.name}</b><br>
-                            <small>By ${item.creatorName || "System"}</small><br>
-                            <span style="color:green;">${item.price} R$</span><br>
-                            <button class="btn btn-primary" onclick="buyItem('${child.key}', ${item.price})">Buy</button>
-                        </div>`;
+                    const i = child.val();
+                    grid.innerHTML += `<div class="card"><b>${i.name}</b><br><span style="color:green;">${i.price} R$</span><br><button class="btn btn-primary" onclick="buyItem('${child.key}', ${i.price})">Buy</button></div>`;
                 });
-            } else {
-                grid.innerHTML = "<p>Catalog is empty.</p>";
             }
         }
 
-        async function buyItem(assetId, price) {
-            if (currentUserData.robuxBalance < price) return alert("Insufficient Robux! Ask an Admin.");
-            await dbA.ref(`users/${currentUserId}/robuxBalance`).transaction(b => b - price);
-            await dbA.ref(`economy/assets/${assetId}/copiesSold`).transaction(s => (s || 0) + 1);
+        window.buyItem = async function(id, price) {
+            if (currentUserData.robuxBalance < price) return alert("No Robux");
+            await dbA.ref(`users/${currentUserId}/robuxBalance`).set(currentUserData.robuxBalance - price);
             currentUserData.robuxBalance -= price;
             document.getElementById('robux-count').innerText = currentUserData.robuxBalance + " R$";
-            alert("Purchased successfully!");
-        }
+            alert("Bought!");
+        };
 
-        async function createNewGame() {
+        window.createNewGame = async function() {
             const name = prompt("Game Name:");
             if (!name) return;
-            const gameId = "game_" + Math.random().toString(36).substr(2, 9);
-            await dbA.ref(`games/${gameId}`).set({
-                name: name, creatorId: currentUserId, creatorName: currentUserData.displayName,
-                isActive: true, stats: { playing: 0, visits: 0 }
-            });
+            await dbA.ref(`games/game_${Date.now()}`).set({ name, creatorId: currentUserId, creatorName: currentUserData.displayName, isActive: true });
             loadGames();
-            alert("Game created! Go to Studio to build it.");
-        }
+        };
 
-        // Admin Functions
-        async function adminGiveRobux() {
+        window.adminGiveRobux = async function() {
             const target = document.getElementById('admin-target').value.trim();
             const amount = parseInt(document.getElementById('admin-amount').value);
-            if (!target || !amount) return alert("Please enter a username and amount.");
-
+            if (!target || !amount) return;
             const snap = await dbA.ref('users').orderByChild('displayName').equalTo(target).once('value');
-            let targetId = null;
             if (snap.exists()) {
-                snap.forEach(c => targetId = c.key);
-            } else {
-                targetId = target; // Assume it's an ID
+                let tid = null; snap.forEach(c => tid = c.key);
+                if (tid) await dbA.ref(`users/${tid}/robuxBalance`).transaction(b => (b||0) + amount);
             }
+            alert("Done");
+        };
 
-            if (targetId) {
-                await dbA.ref(`users/${targetId}/robuxBalance`).transaction(b => (b || 0) + amount);
-                alert(`Gave ${amount} R$ to ${target}`);
-            } else {
-                alert("User not found");
-            }
-        }
-
-        async function adminToggleBadge(badge) {
+        window.adminToggleBadge = async function(badge) {
             const target = document.getElementById('badge-target').value.trim();
             const snap = await dbA.ref('users').orderByChild('displayName').equalTo(target).once('value');
-            let targetId = null;
             if (snap.exists()) {
-                snap.forEach(c => targetId = c.key);
-            } else {
-                targetId = target;
-            }
-
-            if (targetId) {
-                const userSnap = await dbA.ref(`users/${targetId}`).once('value');
-                if (userSnap.exists()) {
-                    const currentVal = userSnap.val()[badge] || false;
-                    await dbA.ref(`users/${targetId}/${badge}`).set(!currentVal);
-                    alert(`Toggled ${badge} for ${target}`);
-                } else {
-                    alert("User not found");
+                let tid = null; snap.forEach(c => tid = c.key);
+                if (tid) {
+                    const u = await dbA.ref(`users/${tid}`).once('value');
+                    await dbA.ref(`users/${tid}/${badge}`).set(!u.val()[badge]);
                 }
-            } else {
-                alert("Please enter a username");
             }
-        }
+            alert("Done");
+        };
 
-        function updateAvatarColor() {
+        window.updateAvatarColor = function() {
             const color = document.getElementById('avatar-color').value;
             dbA.ref(`users/${currentUserId}/avatar/torsoColor`).set(color);
-        }
+        };
+
+        // 5. Run initialization when window loads
+        window.onload = initApp;
     </script>
+</body>
+</html>
