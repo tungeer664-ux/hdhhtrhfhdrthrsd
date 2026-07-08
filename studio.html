@@ -63,13 +63,11 @@
         const username = urlParams.get('username') || "Guest";
         const projectId = urlParams.get('projectId') || "proj_" + Date.now();
 
-        // Init Firebase (Both DBs)
         const appA = firebase.initializeApp({ databaseURL: "https://roblox-bd310-default-rtdb.firebaseio.com/" }, "A");
         const appB = firebase.initializeApp({ databaseURL: "https://roblox-everything-else-default-rtdb.firebaseio.com/" }, "B");
         const dbA = appA.database();
         const dbB = appB.database();
 
-        // Three.js Setup
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x222222);
         const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 2000);
@@ -106,7 +104,6 @@
         });
         renderer.domElement.addEventListener('wheel', e => { camRadius += e.deltaY * 0.05; updateCam(); });
 
-        // Selection Logic
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
         renderer.domElement.addEventListener('dblclick', e => {
@@ -130,7 +127,7 @@
             if(type==='block') geom = new THREE.BoxGeometry(4,4,4);
             else if(type==='sphere') geom = new THREE.SphereGeometry(2);
             else if(type==='cylinder') geom = new THREE.CylinderGeometry(2,2,4);
-            else geom = new THREE.BoxGeometry(6,1,6); // Spawn
+            else geom = new THREE.BoxGeometry(6,1,6);
 
             const mat = new THREE.MeshStandardMaterial({ color: type==='spawn' ? 0x00ff00 : 0x808080 });
             const mesh = new THREE.Mesh(geom, mat);
@@ -178,7 +175,6 @@
             selectObj(null);
         };
 
-        // Save/Publish Logic
         window.saveProject = async function() {
             document.getElementById('status').innerText = "Saving...";
             const data = objects.map(o => ({
@@ -200,7 +196,6 @@
             if(!name) return;
 
             const placeId = "place_" + Date.now();
-            // Publish to DB A (Games List)
             await dbA.ref(`games/${placeId}`).set({
                 name: name, creatorId: userId, creatorName: username,
                 isActive: true, stats: { playing: 0, visits: 0 },
@@ -210,7 +205,6 @@
             document.getElementById('status').innerText = "Published!";
         };
 
-        // Load Project
         async function loadProject() {
             const snap = await dbB.ref(`studioProjects/${projectId}`).once('value');
             if(snap.exists()) {
@@ -234,7 +228,6 @@
         }
         loadProject();
 
-        // Resize & Animate
         function resize() {
             const vp = document.getElementById('viewport');
             camera.aspect = vp.clientWidth / vp.clientHeight;
